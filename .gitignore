@@ -1,0 +1,6 @@
+# VSCode config folder
+.vscode/
+
+# Artifact / output folders
+build/
+out/
