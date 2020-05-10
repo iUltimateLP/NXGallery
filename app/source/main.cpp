@@ -11,6 +11,34 @@
 // Include the main libnx system header, for Switch development
 #include <switch.h>
 
+// Loads up and initializes all libnx modules needed
+void initSwitchModules()
+{
+    // Initialize the socket system (needed for the web server)
+    Result r = socketInitializeDefault();
+    if (R_FAILED(r))
+        printf("ERROR initializing socket: %d\n", R_DESCRIPTION(r));
+
+    // Initialize the romfs system (needed to serve the static web page from the file system)
+    r = romfsInit();
+    if (R_FAILED(r))
+        printf("ERROR initializing romfs: %d\n", R_DESCRIPTION(r));
+
+    // Initialize the capsa system (needed to access the Switch's album)
+    r = capsaInitialize();
+    if (R_FAILED(r))
+        printf("ERROR initializing capsa: %d\n", R_DESCRIPTION(r));
+}
+
+// Closes and unloads all libnx modules we need
+void exitSwitchModules()
+{
+    // Exit the loaded modules in reversed order we loaded them
+    capsaExit();
+    romfsExit();
+    socketExit();
+}
+
 // Main program entrypoint
 int main(int argc, char* argv[])
 {
@@ -21,8 +49,11 @@ int main(int argc, char* argv[])
     //   take a look at the graphics/opengl set of examples, which uses EGL instead.
     consoleInit(NULL);
 
+    // Initialize all modules NXGallery needs
+    initSwitchModules();
+
     // Other initialization goes here. As a demonstration, we print hello world.
-    printf("Hello World!\n");
+    printf("NXGallery starting up\n");
 
     // Main loop
     while (appletMainLoop())
@@ -42,6 +73,9 @@ int main(int argc, char* argv[])
         // Update the console, sending a new frame to the display
         consoleUpdate(NULL);
     }
+
+    // Deinitialize all modules NXGallery needed
+    exitSwitchModules();
 
     // Deinitialize and clean up resources used by the console (important!)
     consoleExit(NULL);
