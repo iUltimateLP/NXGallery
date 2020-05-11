@@ -7,6 +7,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <arpa/inet.h>
 
 // Include the main libnx system header, for Switch development
 #include <switch.h>
@@ -51,6 +52,12 @@ int main(int argc, char* argv[])
 
     // Initialize all modules NXGallery needs
     initSwitchModules();
+
+    // Initialize nxlink stdout and stderr redirect
+#ifdef __DEBUG__
+    printf("nxlink initialized: %s\n", inet_ntoa(__nxlink_host));
+    nxlinkStdio();
+#endif
 
     // Other initialization goes here. As a demonstration, we print hello world.
     printf("NXGallery starting up\n");
