@@ -57,7 +57,6 @@ void WebServer::ServeLoop()
 {
     // Asynchronous / event-driven loop using poll
     // More here: http://man7.org/linux/man-pages/man2/poll.2.html
-    int pollResult;
 
     // Will hold the data returned from poll()
     struct pollfd pollInfo;
@@ -107,8 +106,8 @@ void WebServer::ServeRequest(int in, int out)
     char *le;
 
     // Counts the bytes received from a request
-    int count = 0;
-    int totalCount = 0;
+    int bytesReceived = 0;
+    int bytesTotal = 0;
 
     // URL which was requested
     char url[256];
@@ -127,11 +126,11 @@ void WebServer::ServeRequest(int in, int out)
     //       for optimization. Therefore, we would wait forever for data to arrive on that socket.
     //       That's why I'm setting MSG_DONTWAIT and ignore the second sockets from the browsers.
     bool breakReceive = false;
-    while ((count = recv(in, b, sizeof(buffer) - totalCount, MSG_DONTWAIT)) > 0) 
+    while ((bytesReceived = recv(in, b, sizeof(buffer) - bytesTotal, MSG_DONTWAIT)) > 0) 
     {
         // Count the bytes received
-        totalCount += count;
-        b += count;
+        bytesTotal += bytesReceived;
+        b += bytesReceived;
 
         // Go through all bytes we received until now
         while (l < b) 
@@ -199,11 +198,11 @@ void WebServer::ServeRequest(int in, int out)
 
             // Read the data from the file requested until there is no data left to read
             do {
-                count = read(fileToServe, buffer, sizeof(buffer));
+                bytesReceived = read(fileToServe, buffer, sizeof(buffer));
 
                 // Send it out to the client
-                send(out, buffer, count, 0);
-            } while (count > 0);
+                send(out, buffer, bytesReceived, 0);
+            } while (bytesReceived > 0);
 
             // We successfully read the file to serve, so close it
             close(fileToServe);
@@ -218,7 +217,7 @@ void WebServer::ServeRequest(int in, int out)
     }
     // For the reason mentioned above, it might happen that we receive data which is
     // 0 bytes long. Make sure to ignore that and NOT return a 501 then
-    else if (totalCount > 0)
+    else if (bytesTotal > 0)
     {
         // There was no URL given, likely that another request was issued.
         // Return a 501

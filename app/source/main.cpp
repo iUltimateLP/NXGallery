@@ -63,7 +63,7 @@ int main(int argc, char* argv[])
 #endif
 
     // Other initialization goes here. As a demonstration, we print hello world.
-    printf("NXGallery starting up\n");
+    printf("NXGallery starting up\nPress + to exit\n");
 
     // Create the web server for hosting the web interface, and start it
     nxgallery::WebServer* webServer = new nxgallery::WebServer(1234);
