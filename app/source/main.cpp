@@ -12,10 +12,23 @@
 // Include the main libnx system header, for Switch development
 #include <switch.h>
 
+// Include the headers from NXGallery
+#include "server.hpp"
+
 // Loads up and initializes all libnx modules needed
 void initSwitchModules()
 {
     // Initialize the socket system (needed for the web server)
+    SocketInitConfig socketConfig;
+    socketConfig.bsdsockets_version = 1;
+    socketConfig.tcp_rx_buf_size = 8 * 65536;
+    socketConfig.tcp_tx_buf_size = 8 * 65536;
+    socketConfig.tcp_rx_buf_max_size = 16 * 65536;
+    socketConfig.tcp_tx_buf_max_size = 16 * 65536;
+    socketConfig.udp_rx_buf_size = 0xA500;
+    socketConfig.udp_tx_buf_size = 0x2400;
+    socketConfig.sb_efficiency = 8;
+
     Result r = socketInitializeDefault();
     if (R_FAILED(r))
         printf("ERROR initializing socket: %d\n", R_DESCRIPTION(r));
@@ -62,6 +75,10 @@ int main(int argc, char* argv[])
     // Other initialization goes here. As a demonstration, we print hello world.
     printf("NXGallery starting up\n");
 
+    // Create the web server for hosting the web interface, and start it
+    nxgallery::WebServer* webServer = new nxgallery::WebServer(1234);
+    webServer->Start();
+
     // Main loop
     while (appletMainLoop())
     {
@@ -76,10 +93,14 @@ int main(int argc, char* argv[])
             break; // break in order to return to hbmenu
 
         // Your code goes here
+        webServer->ServeLoop(NULL);
 
         // Update the console, sending a new frame to the display
         consoleUpdate(NULL);
     }
+
+    // Stop the web server
+    webServer->Stop();
 
     // Deinitialize all modules NXGallery needed
     exitSwitchModules();

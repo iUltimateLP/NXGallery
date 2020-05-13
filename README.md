@@ -25,4 +25,3 @@ Compiling this project requires a [Nintendo Switch Homebrew dev environment](htt
 I've used the following libraries, without this project wouldn't have been possible:
  + [libnx](https://github.com/switchbrew/libnx)
  + [Atmosphère](https://github.com/Atmosphere-NX/Atmosphere)
- + [@yhirose/cpp-httplib](https://github.com/yhirose/cpp-httplib)
