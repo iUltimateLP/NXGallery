@@ -18,17 +18,7 @@
 // Loads up and initializes all libnx modules needed
 void initSwitchModules()
 {
-    // Initialize the socket system (needed for the web server)
-    SocketInitConfig socketConfig;
-    socketConfig.bsdsockets_version = 1;
-    socketConfig.tcp_rx_buf_size = 8 * 65536;
-    socketConfig.tcp_tx_buf_size = 8 * 65536;
-    socketConfig.tcp_rx_buf_max_size = 16 * 65536;
-    socketConfig.tcp_tx_buf_max_size = 16 * 65536;
-    socketConfig.udp_rx_buf_size = 0xA500;
-    socketConfig.udp_tx_buf_size = 0x2400;
-    socketConfig.sb_efficiency = 8;
-
+    // Initialize the sockets system (needed for networking)
     Result r = socketInitializeDefault();
     if (R_FAILED(r))
         printf("ERROR initializing socket: %d\n", R_DESCRIPTION(r));
@@ -92,8 +82,8 @@ int main(int argc, char* argv[])
         if (kDown & KEY_PLUS)
             break; // break in order to return to hbmenu
 
-        // Your code goes here
-        webServer->ServeLoop(NULL);
+        // Run the web server loop
+        webServer->ServeLoop();
 
         // Update the console, sending a new frame to the display
         consoleUpdate(NULL);

@@ -4,42 +4,23 @@
 */
 
 #pragma once
-//#include "httplib.hpp"
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include <arpa/inet.h>
-#include <cstring>
-//#include <ifaddrs.h>
-#include <netdb.h>
-#include <netinet/in.h>
-#include <csignal>
-#include <pthread.h>
-#include <sys/select.h>
-#include <sys/socket.h>
-#include <unistd.h>
-
-#include <array>
-#include <atomic>
-#include <cassert>
-#include <climits>
-#include <condition_variable>
 #include <errno.h>
+#include <unistd.h>
+#include <sys/socket.h>
 #include <fcntl.h>
-#include <fstream>
-#include <functional>
-#include <list>
-#include <map>
-#include <memory>
-#include <mutex>
-#include <random>
-#include <regex>
-#include <string>
-#include <sys/stat.h>
-#include <thread>
+#include <poll.h>
+#include <switch.h>
 
 namespace nxgallery
 {
     // This class will handle the web server running.
     // Therefore it's a very important part for this app
     // Huge shoutout to https://www.kompf.de/cplus/artikel/httpserv.html
+    // and the man7.org Linux manual
     class WebServer
     {
     public:
@@ -53,13 +34,13 @@ namespace nxgallery
         void Stop();
 
         // The loop for the server to accept and handle requests
-        void ServeLoop(void* args);
+        void ServeLoop();
 
     private:
         // Serves a incoming request to the speicified out socket
-        void ServeRequest(int in, int out);
+        static void ServeRequest(int in, int out);
 
-    private:
+    public:
         // The port the server is running on
         int port;
 
