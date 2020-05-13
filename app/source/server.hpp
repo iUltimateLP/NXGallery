@@ -13,6 +13,7 @@
 #include <sys/socket.h>
 #include <fcntl.h>
 #include <poll.h>
+#include <sys/time.h>
 #include <switch.h>
 
 namespace nxgallery

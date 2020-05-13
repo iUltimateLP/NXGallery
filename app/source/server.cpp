@@ -36,6 +36,12 @@ void WebServer::Start()
         return;
     }
 
+    // Set a relatively short timeout for recv() calls, see WebServer::ServeRequest for more info why
+    struct timeval recvTimeout;
+    recvTimeout.tv_sec = 1;
+    recvTimeout.tv_usec = 0;
+    setsockopt(serverSocket, SOL_SOCKET, SO_RCVTIMEO, (char*)&recvTimeout, sizeof(recvTimeout));
+
     // Bind the just-created socket to the address
     if (bind(serverSocket, (struct sockaddr*)&serv_addr, sizeof(serv_addr)) < 0)
     {
@@ -124,9 +130,9 @@ void WebServer::ServeRequest(int in, int out)
     //       Therefore, the code may halt here to wait for incoming data. Some browsers, such as
     //       Google Chrome like to open a second socket (but not send anything) as a backup socket
     //       for optimization. Therefore, we would wait forever for data to arrive on that socket.
-    //       That's why I'm setting MSG_DONTWAIT and ignore the second sockets from the browsers.
+    //       That's why I set a timeout for recv calls() before, see WebServer::Start()
     bool breakReceive = false;
-    while ((bytesReceived = recv(in, b, sizeof(buffer) - bytesTotal, MSG_DONTWAIT)) > 0) 
+    while ((bytesReceived = recv(in, b, sizeof(buffer) - bytesTotal, 0)) > 0) 
     {
         // Count the bytes received
         bytesTotal += bytesReceived;
