@@ -1,4 +1,4 @@
-  /*
+/*
     NXGallery for Nintendo Switch
     Made with love by Jonathan Verbeek (jverbeek.de)
 */
@@ -13,6 +13,7 @@
 #include <switch.h>
 
 // Include the headers from NXGallery
+#include "util.hpp"
 #include "server.hpp"
 
 // Loads up and initializes all libnx modules needed
@@ -63,7 +64,8 @@ int main(int argc, char* argv[])
 #endif
 
     // Other initialization goes here. As a demonstration, we print hello world.
-    printf("NXGallery starting up\nPress + to exit\n");
+    printf(YELLOW "NXGallery starting up\n");
+    printf(RED "Press + to exit\n" RESET);
 
     // Create the web server for hosting the web interface, and start it
     nxgallery::WebServer* webServer = new nxgallery::WebServer(1234);
