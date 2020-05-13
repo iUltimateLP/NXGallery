@@ -15,21 +15,27 @@
 // Include the headers from NXGallery
 #include "util.hpp"
 #include "server.hpp"
+#include "albumwrapper.hpp"
 
 // Loads up and initializes all libnx modules needed
 void initSwitchModules()
 {
-    // Initialize the sockets system (needed for networking)
+    // Initialize the sockets service (needed for networking)
     Result r = socketInitializeDefault();
     if (R_FAILED(r))
         printf("ERROR initializing socket: %d\n", R_DESCRIPTION(r));
 
-    // Initialize the romfs system (needed to serve the static web page from the file system)
+    // Initialize the romfs service (needed to serve the static web page from the file system)
     r = romfsInit();
     if (R_FAILED(r))
         printf("ERROR initializing romfs: %d\n", R_DESCRIPTION(r));
 
-    // Initialize the capsa system (needed to access the Switch's album)
+    // Initialize the filesystem service (needed to access the filesystem - obviously)
+    r = fsInitialize();
+    if (R_FAILED(r))
+        printf("ERROR initializing fs: %d\n", R_DESCRIPTION(r));
+
+    // Initialize the capsa service (needed to access the Switch's album)
     r = capsaInitialize();
     if (R_FAILED(r))
         printf("ERROR initializing capsa: %d\n", R_DESCRIPTION(r));
@@ -40,6 +46,7 @@ void exitSwitchModules()
 {
     // Exit the loaded modules in reversed order we loaded them
     capsaExit();
+    fsExit();
     romfsExit();
     socketExit();
 }
@@ -67,6 +74,10 @@ int main(int argc, char* argv[])
     printf(YELLOW "NXGallery starting up\n");
     printf(RED "Press + to exit\n" RESET);
 
+    // Create the AlbumWrapper tool and initialize is
+    nxgallery::AlbumWrapper* albumWrapper = new nxgallery::AlbumWrapper();
+    albumWrapper->Init();
+
     // Create the web server for hosting the web interface, and start it
     nxgallery::WebServer* webServer = new nxgallery::WebServer(1234);
     webServer->Start();
@@ -93,6 +104,9 @@ int main(int argc, char* argv[])
 
     // Stop the web server
     webServer->Stop();
+
+    // Stop the album wrapper
+    albumWrapper->Shutdown();
 
     // Deinitialize all modules NXGallery needed
     exitSwitchModules();
