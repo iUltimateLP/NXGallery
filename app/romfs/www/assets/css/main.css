@@ -30,7 +30,7 @@
     animation-timing-function: ease-in-out;
 }
 
-.grid-cell>img {
+.grid-cell>img, .grid-cell>video {
     background-repeat: no-repeat;
     width: 100%;
     vertical-align: middle;

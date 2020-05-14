@@ -39,24 +39,83 @@ const theme = createMuiTheme({
     },
 });
 
-function App() {
-    return (
-        <Container style={{flexGrow: 1, padding: "8px"}}>
-            <Typography variant="h2" color="textPrimary" align="center">NXGallery</Typography>
-            <Typography variant="h6" color="textSecondary" align="center" style={{paddingBottom: "16px"}}>Browse your Nintendo Switch album with ease!</Typography>
+class GalleryItem extends React.Component {
+    constructor(props) {
+        super(props);
 
-            <Grid container spacing={2} justify="center">
-                {[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((value) => (
-                    <Grid key={value} item xs={4}>
-                        <Paper onClick={buttonClicked()} elevation={2} className={"grid-cell"} key={value}>
-                            <img src="assets/plhd.jpg"></img>
-                        </Paper>
-                    </Grid>
-                ))}
+        this.state = {
+            item: props.item,
+            isVideo: props.item.path.endsWith(".mp4")
+        };
+    }
+
+    imageClicked() {
+
+    }
+
+    render() {
+        let viewElement;
+        if (this.state.isVideo) {
+            viewElement = <video src={this.state.item.path} controls preload={"none"}></video>
+        } else {
+            viewElement = <img src={this.state.item.path}></img>
+        }
+
+        return (
+            <Grid item xs={4}>
+                <Paper onClick={this.imageClicked()} elevation={2} className={"grid-cell"}>
+                    {viewElement}
+                </Paper>           
             </Grid>
-            
-        </Container>
-    );
+        );
+    }
+}
+
+class App extends React.Component {
+    constructor(props) {
+        super(props);
+
+        this.state = {
+            galleryContent: [],
+            error: false
+        };
+    }
+
+    componentDidMount() {
+        fetch("/gallery?page=1")
+            .then(res => res.json())
+            .then((result) => {
+                this.setState({
+                    galleryContent: result,
+                    error: false
+                })
+            }, (error) => {
+                console.log("Error");
+                this.setState({
+                    error: true
+                });
+            });
+    }
+
+    render() {
+        return (
+            <Container style={{flexGrow: 1, padding: "8px"}}>
+                <Typography variant="h2" color="textPrimary" align="center">NXGallery</Typography>
+                <Typography variant="h6" color="textSecondary" align="center" style={{paddingBottom: "16px"}}>Browse your Nintendo Switch album with ease!</Typography>
+
+                <Grid container spacing={2} justify="center">
+                    {this.state.galleryContent.map((value) => (
+                        <GalleryItem key={value.takenAt} item={value} />
+                    ))}
+                </Grid>
+
+                {this.state.error && 
+                    <Typography variant="h6" color="error" align="center">An error has occured.</Typography>
+                }
+                
+            </Container>
+        );
+    }
 }
 
 ReactDOM.render(
@@ -66,7 +125,3 @@ ReactDOM.render(
     </ThemeProvider>,
     document.querySelector("#app-root")
 );
-
-function buttonClicked() {
-
-}

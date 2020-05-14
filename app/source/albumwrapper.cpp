@@ -124,6 +124,9 @@ std::string AlbumWrapper::GetGalleryContent(int page)
     allAlbumContent.insert(allAlbumContent.end(), nandAlbumContent.begin(), nandAlbumContent.end());
     allAlbumContent.insert(allAlbumContent.end(), sdAlbumContent.begin(), sdAlbumContent.end());
 
+    // Reverse the content so we have newest items first
+    std::reverse(allAlbumContent.begin(), allAlbumContent.end());
+
     // Calculate the page range
     int pageMin = (page - 1) * CONTENT_PER_PAGE;
     int pageMax = page * CONTENT_PER_PAGE;
