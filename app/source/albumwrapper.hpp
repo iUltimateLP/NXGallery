@@ -6,9 +6,12 @@
 #pragma once
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
+#include <string>
 #include <vector>
 #include <switch.h>
+
+// Defines how many items should be returned per page
+#define CONTENT_PER_PAGE 10
 
 namespace nxgallery
 {
@@ -26,6 +29,10 @@ namespace nxgallery
 
         // Returns all paths where the Switch stores album content
         std::vector<const char*> GetAlbumContentPaths();
+
+        // Basically, the logic behind the /gallery endpoint as a backend API
+        // Contains a JSON-stringified array of gallery content
+        std::string GetGalleryContent(int page);
 
     private:
         // Holds the filesystem of the internal NAND storage

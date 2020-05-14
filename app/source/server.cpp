@@ -65,6 +65,7 @@ void WebServer::Start()
 void WebServer::AddMountPoint(const char* path)
 {
     // Add it to the mountPoints vector
+    printf("Adding mount point %s\n", path);
     mountPoints.push_back(path);
 }
 
@@ -195,18 +196,18 @@ void WebServer::ServeRequest(int in, int out, std::vector<const char*> mountPoin
             strcpy(url, "/index.html");
             printf("/ => /index.html\n");
         }
-        else
-        {
-            //sprintf(path, "%s%s", WEB_STATIC_PATH, url);
-        }
 
         // Find the file in one of the mounted folders
         for (const char* mountPoint : mountPoints)
         {
-            struct stat fileStat;
+            // Map the path of the requested file to this mount point
             sprintf(path, "%s%s", mountPoint, url);
+            printf("Testing %s\n", mountPoint);
+            // Stat to see if the file exists at that mountpoint
+            struct stat fileStat;
             if (stat(path, &fileStat) == 0)
             {
+                // If so, break the loop as we have found our file path for the requested file
                 printf("Found file to serve at mountpoint %s\n", mountPoint);
                 break;
             }
@@ -235,6 +236,14 @@ void WebServer::ServeRequest(int in, int out, std::vector<const char*> mountPoin
             // We successfully read the file to serve, so close it
             close(fileToServe);
             printf("Finished request: GET %s\n", url);
+        }
+        else if (strcmp(url, "/gallery") == 0)
+        {
+            
+
+            // The requested file did not exist, send out a 404
+            sprintf(buffer, "HTTP/1.0 200 OK\n\n");
+            send(out, buffer, strlen(buffer), 0);
         }
         else
         {
