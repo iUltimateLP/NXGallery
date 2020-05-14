@@ -26,22 +26,41 @@ const {
     BottomNavigation
 } = MaterialUI;
 
-// Create a material UI theme
-const theme = createMuiTheme({
+// Create a light and dark material UI theme
+const lightTheme = createMuiTheme({
     palette: {
-      primary: {
-        main: '#50f4dc', // 04c7c3
-      },
-      secondary: {
-        main: '#19857b',
-      },
-      error: {
-        main: colors.red.A400,
-      },
-      background: {
-        default: '#ebebeb',
-      },
-    },
+        type: "light",
+        primary: {
+            main: "#50f4dc", // 04c7c3
+        },
+        secondary: {
+            main: "#19857b",
+        },
+        error: {
+            main: colors.red.A400,
+        },
+        background: {
+            default: "#ebebeb", // 2d2d2d
+        },
+    }
+});
+
+const darkTheme = createMuiTheme({
+    palette: {
+        type: "dark",
+        primary: {
+            main: "#50f4dc",
+        },
+        secondary: {
+            main: "#19857b",
+        },
+        error: {
+            main: colors.red.A400,
+        },
+        background: {
+            default: "#2d2d2d",
+        }
+    }
 });
 
 // Component for one gallery content
@@ -86,6 +105,7 @@ class App extends React.Component {
         this.state = {
             galleryContent: [],
             currentPage: 1,
+            maxPages: 1,
             error: false
         };
     }
@@ -100,7 +120,9 @@ class App extends React.Component {
         .then(res => res.json())
         .then((result) => {
             this.setState({
-                galleryContent: result,
+                galleryContent: result.gallery,
+                maxPages: result.pages,
+                currentTheme: result.theme == "light" ? lightTheme : darkTheme,
                 error: false
             })
         }, (error) => {
@@ -130,44 +152,44 @@ class App extends React.Component {
 
     render() {
         return (
-            <Container style={{flexGrow: 1, padding: "8px"}}>
-                <Typography variant="h2" color="textPrimary" align="center">NXGallery</Typography>
-                <Typography variant="h6" color="textSecondary" align="center" style={{paddingBottom: "16px"}}>Browse your Nintendo Switch album with ease!</Typography>
+            <ThemeProvider theme={this.state.currentTheme}>
+                <CssBaseline/>
+                <Container style={{flexGrow: 1, padding: "8px"}}>
+                    <Typography variant="h2" color="textPrimary" align="center">NXGallery</Typography>
+                    <Typography variant="h6" color="textSecondary" align="center" style={{paddingBottom: "16px"}}>Browse your Nintendo Switch album with ease!</Typography>
 
-                <Grid container spacing={2} justify="center">
-                    {this.state.galleryContent.map((value) => (
-                        <GalleryItem key={value.takenAt} item={value} />
-                    ))}
-                </Grid>
+                    <Grid container spacing={2} justify="center">
+                        {this.state.galleryContent.map((value) => (
+                            <GalleryItem key={value.takenAt} item={value} />
+                        ))}
+                    </Grid>
 
-                {this.state.error && 
-                    <Typography variant="h6" color="error" align="center">Oh no, an error has occured :(</Typography>
-                }
-                
-                {!this.state.error && <Container align="center" style={{paddingTop: "8px"}}>
-                    <ButtonGroup color="secondary">
-                        <Button onClick={() => this.prevPage()} disabled={this.state.currentPage == 1}><Icon>keyboard_arrow_left</Icon></Button>
-                        <Button disabled>{this.state.currentPage}</Button>
-                        <Button onClick={() => this.nextPage()} disabled={this.state.currentPage == 7}><Icon>keyboard_arrow_right</Icon></Button>
-                    </ButtonGroup>
+                    {this.state.error && 
+                        <Typography variant="h6" color="error" align="center">Oh no, an error has occured :(</Typography>
+                    }
+                    
+                    {!this.state.error && <Container align="center" style={{paddingTop: "8px"}}>
+                        <ButtonGroup color="secondary">
+                            <Button onClick={() => this.prevPage()} disabled={this.state.currentPage == 1}><Icon>keyboard_arrow_left</Icon></Button>
+                            <Button disabled>{this.state.currentPage}</Button>
+                            <Button onClick={() => this.nextPage()} disabled={this.state.currentPage == this.state.maxPages}><Icon>keyboard_arrow_right</Icon></Button>
+                        </ButtonGroup>
+                    </Container>
+                    }
+
+                    <Container align="center" className={"footer"}>
+                        <Typography variant="overline" color="textSecondary" align="center">Made with</Typography>
+                        <Icon className={"heart"}>favorite</Icon>
+                        <Typography variant="overline" color="textSecondary" align="center">in Bremen, Germany</Typography>
+                    </Container>
                 </Container>
-                }
-
-                <Container align="center" className={"footer"}>
-                    <Typography variant="overline" color="textSecondary" align="center">Made with</Typography>
-                    <Icon className={"heart"}>favorite</Icon>
-                    <Typography variant="overline" color="textSecondary" align="center">in Bremen, Germany</Typography>
-                </Container>
-            </Container>
+            </ThemeProvider>
         );
     }
 }
 
 ReactDOM.render(
     // Render the app
-    <ThemeProvider theme={theme}>
-        <CssBaseline />
-        <App />
-    </ThemeProvider>,
+    <App/>,
     document.querySelector("#app-root")
 );

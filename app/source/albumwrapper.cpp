@@ -116,8 +116,8 @@ std::string AlbumWrapper::GetGalleryContent(int page)
         }
     */
 
-    // New json array which will hold all album contents
-    json jsonArray = json::array();
+    // New json object which will hold the total response
+    json finalObject;
 
     // Combine both NAND and SD caches into one vector for iterating
     std::vector<CapsAlbumEntry> allAlbumContent;
@@ -126,6 +126,21 @@ std::string AlbumWrapper::GetGalleryContent(int page)
 
     // Reverse the content so we have newest items first
     std::reverse(allAlbumContent.begin(), allAlbumContent.end());
+
+    // Fill in some data for the frontend
+    // Calculate the max amount of pages we will have
+    finalObject["pages"] = (int)ceil((double)allAlbumContent.size() / (double)CONTENT_PER_PAGE);
+
+    // Get the console's color theme so the frontend can fit
+    ColorSetId colorTheme;
+    Result r = setsysGetColorSetId(&colorTheme);
+    if (R_SUCCEEDED(r))
+    {
+        finalObject["theme"] = colorTheme == ColorSetId_Dark ? "dark" : "light";
+    }
+    
+    // Will hold the album contents
+    json jsonArray = json::array();
 
     // Calculate the page range
     int pageMin = (page - 1) * CONTENT_PER_PAGE;
@@ -234,8 +249,10 @@ std::string AlbumWrapper::GetGalleryContent(int page)
         jsonArray.push_back(jsonObj);
     }
 
+    finalObject["gallery"] = jsonArray;
+
     // Stringify the JSON array
-    outJSON = jsonArray.dump();
+    outJSON = finalObject.dump();
 
     return outJSON;
 }

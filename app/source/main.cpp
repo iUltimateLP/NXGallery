@@ -39,12 +39,18 @@ void initSwitchModules()
     r = capsaInitialize();
     if (R_FAILED(r))
         printf("ERROR initializing capsa: %d\n", R_DESCRIPTION(r));
+
+    // Initialize the setsys service (needed to get the Switch's color theme)
+    r = setsysInitialize();
+    if (R_FAILED(r))
+        printf("ERROR initializing setsys: %d\n", R_DESCRIPTION(r));
 }
 
 // Closes and unloads all libnx modules we need
 void exitSwitchModules()
 {
     // Exit the loaded modules in reversed order we loaded them
+    setsysExit();
     capsaExit();
     fsExit();
     romfsExit();
