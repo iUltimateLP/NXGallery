@@ -130,16 +130,14 @@ std::string AlbumWrapper::GetGalleryContent(int page)
 
     // Make sure to stay in bounds
     if (pageMax >= allAlbumContent.size())
-    {
-        pageMax = allAlbumContent.size() - 1;
-    }
+        pageMax = allAlbumContent.size();
 
     // Iterate over the current range for the page
     for (int i = pageMin; i < pageMax; i++)
     {
         // Get the entry off the album content cache
         CapsAlbumEntry albumEntry = allAlbumContent[i];
-        
+
         // Screenshot files are always named after the following scheme:
         // yyyy/mm/dd/yyyymmddHHMMSSii-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx.jpg
         // ii is an index to make sure that multiple screenshots can be taken in the same second
@@ -252,7 +250,6 @@ void AlbumWrapper::CacheAlbum(CapsAlbumStorage location, std::vector<CapsAlbumEn
 {    
     // This uses capsa (Capture Service), which is the libnx service to data from the Switch album
 
-    // Cache the NAND album content
     // Get the total amount of files in the album
     u64 totalAlbumFileCount;
     capsaGetAlbumFileCount(location, &totalAlbumFileCount);
