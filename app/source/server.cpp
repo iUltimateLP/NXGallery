@@ -4,6 +4,7 @@
 */
 
 #include "server.hpp"
+#include "albumwrapper.hpp"
 using namespace nxgallery;
 
 // The web server will mount assets under this path
@@ -239,11 +240,30 @@ void WebServer::ServeRequest(int in, int out, std::vector<const char*> mountPoin
         }
         else if (strcmp(url, "/gallery") == 0)
         {
+            // First, send a 200 OK back
+            sprintf(buffer, "HTTP/1.0 200 OK\nContent-Type: application/json\n\n");
+            send(out, buffer, strlen(buffer), 0);
+
+            // Grab the argument from the request
             
 
-            // The requested file did not exist, send out a 404
-            sprintf(buffer, "HTTP/1.0 200 OK\n\n");
-            send(out, buffer, strlen(buffer), 0);
+            // Ask the album wrapper to process the request
+            std::string jsonData = nxgallery::AlbumWrapper::Get()->GetGalleryContent(1);
+
+            // Send out the data to the socket
+            const char* dataPtr = jsonData.data();
+            std::size_t dataSize = jsonData.size();
+            int bytesSent = 0;
+
+            while (dataSize > 0)
+            {
+                bytesSent = send(out, dataPtr, dataSize, 0);
+                if (bytesSent < 0)
+                    break;
+
+                dataPtr += bytesSent;
+                dataSize -= bytesSent;
+            }
         }
         else
         {

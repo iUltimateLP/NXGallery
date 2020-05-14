@@ -26,6 +26,10 @@ namespace nxgallery
     class AlbumWrapper
     {
     public:
+        // Returns the singleton instance of the album wrapper
+        // We use a singleton so the web server can access it
+        static AlbumWrapper* Get();
+
         // Initializes the album wrapper
         void Init();
 
@@ -57,5 +61,8 @@ namespace nxgallery
         // Holds all album content in cache
         std::vector<CapsAlbumEntry> nandAlbumContent;
         std::vector<CapsAlbumEntry> sdAlbumContent;
+
+        // Singleton instance of the AlbumWrapper
+        static AlbumWrapper* singleton;
     };
 }

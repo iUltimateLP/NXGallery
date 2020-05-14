@@ -74,9 +74,8 @@ int main(int argc, char* argv[])
     printf(YELLOW "NXGallery starting up\n");
     printf(RED "Press + to exit\n" RESET);
 
-    // Create the AlbumWrapper tool and initialize is
-    nxgallery::AlbumWrapper* albumWrapper = new nxgallery::AlbumWrapper();
-    albumWrapper->Init();
+    // Initialize the album wrapper
+    nxgallery::AlbumWrapper::Get()->Init();
 
     // Create the web server for hosting the web interface, and start it
     nxgallery::WebServer* webServer = new nxgallery::WebServer(1234);
@@ -84,12 +83,10 @@ int main(int argc, char* argv[])
 
     // Get all paths where Nintendo stores the album content and add these
     // as mount points for the web server
-    for (const char* albumPath : albumWrapper->GetAlbumContentPaths())
+    for (const char* albumPath : nxgallery::AlbumWrapper::Get()->GetAlbumContentPaths())
     {
         webServer->AddMountPoint(albumPath);
     }
-
-    albumWrapper->GetGalleryContent(1);
 
     // Main loop
     while (appletMainLoop())
@@ -115,7 +112,7 @@ int main(int argc, char* argv[])
     webServer->Stop();
 
     // Stop the album wrapper
-    albumWrapper->Shutdown();
+    nxgallery::AlbumWrapper::Get()->Shutdown();
 
     // Deinitialize all modules NXGallery needed
     exitSwitchModules();

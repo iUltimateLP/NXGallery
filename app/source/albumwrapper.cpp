@@ -12,6 +12,9 @@
 using namespace nxgallery;
 using json = nlohmann::json;
 
+// Needed for compiler
+AlbumWrapper* AlbumWrapper::singleton = NULL;
+
 // Overwritten == operator to compare CapsAlbumEntry's
 inline bool operator==(CapsAlbumEntry lhs, const CapsAlbumEntry rhs)
 {
@@ -23,6 +26,18 @@ inline bool operator==(CapsAlbumEntry lhs, const CapsAlbumEntry rhs)
         && lhs.file_id.datetime.minute == rhs.file_id.datetime.minute
         && lhs.file_id.datetime.second == rhs.file_id.datetime.second
         && lhs.file_id.datetime.id == rhs.file_id.datetime.id;
+}
+
+AlbumWrapper* AlbumWrapper::Get()
+{
+    // If no singleton is existing, create a new instance
+    if (!singleton)
+    {
+        singleton = new AlbumWrapper();
+    }
+
+    // Return the instance
+    return singleton;
 }
 
 void AlbumWrapper::Init()
@@ -206,8 +221,6 @@ std::string AlbumWrapper::GetGalleryContent(int page)
 
     // Stringify the JSON array
     outJSON = jsonArray.dump();
-
-    printf(outJSON.c_str());
 
     return outJSON;
 }
