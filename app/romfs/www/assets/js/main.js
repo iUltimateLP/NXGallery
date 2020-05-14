@@ -3,6 +3,7 @@
     Made with love by Jonathan Verbeek (jverbeek.de)
 */
 
+// Material UI imports
 const {
     colors,
     CssBaseline,
@@ -19,9 +20,13 @@ const {
     Paper,
     GridList,
     GridListTile,
-    Modal
+    Modal,
+    ButtonGroup,
+    Icon,
+    BottomNavigation
 } = MaterialUI;
 
+// Create a material UI theme
 const theme = createMuiTheme({
     palette: {
       primary: {
@@ -39,6 +44,7 @@ const theme = createMuiTheme({
     },
 });
 
+// Component for one gallery content
 class GalleryItem extends React.Component {
     constructor(props) {
         super(props);
@@ -54,6 +60,7 @@ class GalleryItem extends React.Component {
     }
 
     render() {
+        // Decide whether to show a video or an image element
         let viewElement;
         if (this.state.isVideo) {
             viewElement = <video src={this.state.item.path} controls preload={"none"}></video>
@@ -63,7 +70,7 @@ class GalleryItem extends React.Component {
 
         return (
             <Grid item xs={4}>
-                <Paper onClick={this.imageClicked()} elevation={2} className={"grid-cell"}>
+                <Paper onClick={this.imageClicked} elevation={2} className={"grid-cell"}>
                     {viewElement}
                 </Paper>           
             </Grid>
@@ -71,30 +78,50 @@ class GalleryItem extends React.Component {
     }
 }
 
+// Component for the whole web app
 class App extends React.Component {
     constructor(props) {
         super(props);
 
         this.state = {
             galleryContent: [],
+            currentPage: 1,
             error: false
         };
     }
 
     componentDidMount() {
-        fetch("/gallery?page=1")
-            .then(res => res.json())
-            .then((result) => {
-                this.setState({
-                    galleryContent: result,
-                    error: false
-                })
-            }, (error) => {
-                console.log("Error");
-                this.setState({
-                    error: true
-                });
+        // Fetch the gallery directly at the beginning
+        this.fetchGallery();
+    }
+
+    fetchGallery() {
+        fetch("/gallery?page=" + this.state.currentPage)
+        .then(res => res.json())
+        .then((result) => {
+            this.setState({
+                galleryContent: result,
+                error: false
+            })
+        }, (error) => {
+            this.setState({
+                error: true
             });
+        });
+    }
+
+    prevPage(e) {
+        // Go one page back
+        this.setState({
+            currentPage: this.state.currentPage - 1
+        });
+    }
+
+    nextPage(e) {
+        // Go one page forth
+        this.setState({
+            currentPage: this.state.currentPage + 1
+        });
     }
 
     render() {
@@ -110,15 +137,30 @@ class App extends React.Component {
                 </Grid>
 
                 {this.state.error && 
-                    <Typography variant="h6" color="error" align="center">An error has occured.</Typography>
+                    <Typography variant="h6" color="error" align="center">Oh no, an error has occured :(</Typography>
                 }
                 
+                {!this.state.error && <Container align="center" style={{paddingTop: "8px"}}>
+                    <ButtonGroup color="secondary">
+                        <Button onClick={(e) => this.prevPage(e)} disabled={this.state.currentPage == 1}><Icon>keyboard_arrow_left</Icon></Button>
+                        <Button disabled>{this.state.currentPage}</Button>
+                        <Button onClick={(e) => this.nextPage(e)} disabled={this.state.currentPage == 7}><Icon>keyboard_arrow_right</Icon></Button>
+                    </ButtonGroup>
+                </Container>
+                }
+
+                <Container align="center" className={"footer"}>
+                    <Typography variant="overline" color="textSecondary" align="center">Made with</Typography>
+                    <Icon className={"heart"}>favorite</Icon>
+                    <Typography variant="overline" color="textSecondary" align="center">in Bremen, Germany</Typography>
+                </Container>
             </Container>
         );
     }
 }
 
 ReactDOM.render(
+    // Render the app
     <ThemeProvider theme={theme}>
         <CssBaseline />
         <App />
