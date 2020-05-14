@@ -40,7 +40,7 @@ const lightTheme = createMuiTheme({
             main: colors.red.A400,
         },
         background: {
-            default: "#ebebeb", // 2d2d2d
+            default: "#ebebeb",
         },
     }
 });
@@ -106,6 +106,7 @@ class App extends React.Component {
             galleryContent: [],
             currentPage: 1,
             maxPages: 1,
+            currentTheme: lightTheme,
             error: false
         };
     }
@@ -168,10 +169,10 @@ class App extends React.Component {
                         <Typography variant="h6" color="error" align="center">Oh no, an error has occured :(</Typography>
                     }
                     
-                    {!this.state.error && <Container align="center" style={{paddingTop: "8px"}}>
-                        <ButtonGroup color="secondary">
+                    {!this.state.error && <Container align="center" style={{paddingTop: "20px", paddingBottom: "12px"}}>
+                        <ButtonGroup color="primary">
                             <Button onClick={() => this.prevPage()} disabled={this.state.currentPage == 1}><Icon>keyboard_arrow_left</Icon></Button>
-                            <Button disabled>{this.state.currentPage}</Button>
+                            <Button>{this.state.currentPage}</Button>
                             <Button onClick={() => this.nextPage()} disabled={this.state.currentPage == this.state.maxPages}><Icon>keyboard_arrow_right</Icon></Button>
                         </ButtonGroup>
                     </Container>
