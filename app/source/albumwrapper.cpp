@@ -124,8 +124,22 @@ std::string AlbumWrapper::GetGalleryContent(int page)
     allAlbumContent.insert(allAlbumContent.end(), nandAlbumContent.begin(), nandAlbumContent.end());
     allAlbumContent.insert(allAlbumContent.end(), sdAlbumContent.begin(), sdAlbumContent.end());
 
-    for (CapsAlbumEntry albumEntry : allAlbumContent)
+    // Calculate the page range
+    int pageMin = (page - 1) * CONTENT_PER_PAGE;
+    int pageMax = page * CONTENT_PER_PAGE;
+
+    // Make sure to stay in bounds
+    if (pageMax >= allAlbumContent.size())
     {
+        pageMax = allAlbumContent.size() - 1;
+    }
+
+    // Iterate over the current range for the page
+    for (int i = pageMin; i < pageMax; i++)
+    {
+        // Get the entry off the album content cache
+        CapsAlbumEntry albumEntry = allAlbumContent[i];
+        
         // Screenshot files are always named after the following scheme:
         // yyyy/mm/dd/yyyymmddHHMMSSii-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx.jpg
         // ii is an index to make sure that multiple screenshots can be taken in the same second
