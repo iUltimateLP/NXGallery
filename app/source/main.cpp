@@ -82,6 +82,13 @@ int main(int argc, char* argv[])
     nxgallery::WebServer* webServer = new nxgallery::WebServer(1234);
     webServer->Start();
 
+    // Get all paths where Nintendo stores the album content and add these
+    // as mount points for the web server
+    for (const char* albumPath : albumWrapper->GetAlbumContentPaths())
+    {
+        webServer->AddMountPoint(albumPath);
+    }
+
     // Main loop
     while (appletMainLoop())
     {

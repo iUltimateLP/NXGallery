@@ -14,6 +14,9 @@ WebServer::WebServer(int port)
     // Store the port
     this->port = port;
 
+    // Add the static web assets path as an initial mount point
+    mountPoints.push_back(WEB_STATIC_PATH);
+
     // We won't initialize the web server here just now, 
     // the caller can do that by calling WebServer::Start
 }
@@ -59,6 +62,12 @@ void WebServer::Start()
     printf("Listening to %s:%d\n", inet_ntoa(serv_addr.sin_addr), port);
 }
 
+void WebServer::AddMountPoint(const char* path)
+{
+    // Add it to the mountPoints vector
+    mountPoints.push_back(path);
+}
+
 void WebServer::ServeLoop()
 {
     // Asynchronous / event-driven loop using poll
@@ -87,7 +96,7 @@ void WebServer::ServeLoop()
                 printf("Accepted connection from %s:%u\n", inet_ntoa(clientAddress.sin_addr), ntohs(clientAddress.sin_port));
 
                 // Serve ("answer") the request which is waiting at the file descriptor accept() returned
-                ServeRequest(acceptedConnection, acceptedConnection);
+                ServeRequest(acceptedConnection, acceptedConnection, mountPoints);
 
                 // After we served the request, close the connection
                 if (close(acceptedConnection) < 0)
@@ -99,7 +108,7 @@ void WebServer::ServeLoop()
     }
 }
 
-void WebServer::ServeRequest(int in, int out)
+void WebServer::ServeRequest(int in, int out, std::vector<const char*> mountPoints)
 {
     // A lot of the code here is taken from the german page here: https://www.kompf.de/cplus/artikel/httpserv.html
     
@@ -183,11 +192,24 @@ void WebServer::ServeRequest(int in, int out)
         // to index.html aswell.
         if (strcmp(url, "/") == 0)
         {
-            sprintf(path, "%s/index.html", WEB_STATIC_PATH);
+            strcpy(url, "/index.html");
+            printf("/ => /index.html\n");
         }
         else
         {
-            sprintf(path, "%s%s", WEB_STATIC_PATH, url);
+            //sprintf(path, "%s%s", WEB_STATIC_PATH, url);
+        }
+
+        // Find the file in one of the mounted folders
+        for (const char* mountPoint : mountPoints)
+        {
+            struct stat fileStat;
+            sprintf(path, "%s%s", mountPoint, url);
+            if (stat(path, &fileStat) == 0)
+            {
+                printf("Found file to serve at mountpoint %s\n", mountPoint);
+                break;
+            }
         }
     
         printf("Serving %s\n", path);

@@ -14,6 +14,7 @@
 #include <fcntl.h>
 #include <poll.h>
 #include <sys/time.h>
+#include <vector>
 #include <switch.h>
 
 namespace nxgallery
@@ -34,12 +35,15 @@ namespace nxgallery
         // Stops the web server
         void Stop();
 
+        // Adds a new mount point for where the server will look for files to serve
+        void AddMountPoint(const char* path);
+
         // The loop for the server to accept and handle requests
         void ServeLoop();
 
     private:
         // Serves a incoming request to the speicified out socket
-        static void ServeRequest(int in, int out);
+        static void ServeRequest(int in, int out, std::vector<const char*> mountPoints);
 
     public:
         // The port the server is running on
@@ -47,5 +51,8 @@ namespace nxgallery
 
         // The socket which was opened for the HTTP server
         int serverSocket;
+
+        // The mounted folders the web server can serve from
+        std::vector<const char*> mountPoints;
     };
 }
