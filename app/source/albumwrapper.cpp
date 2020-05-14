@@ -30,6 +30,9 @@ void AlbumWrapper::Init()
     {
         printf("Error mounting NAND storage!\n");
     }
+
+    // Cache the gallery content
+    CacheGalleryContent();
 }
 
 void AlbumWrapper::Shutdown()
@@ -72,21 +75,10 @@ std::string AlbumWrapper::GetGalleryContent(int page)
         }
     */
 
-    // capsa is the libnx service to data from the Switch album
-    u64 albumFileCount;
-    CapsAlbumEntry albumFiles[10];
-    Result r = capsaGetAlbumFileList(CapsAlbumStorage_Sd, &albumFileCount, albumFiles, 10);
-
-    if (R_FAILED(r))
-    {
-        printf("Failed to get album file list: %d-%d\n", R_MODULE(r), R_DESCRIPTION(r));
-        return outJSON;
-    }
-
     // New json array which will hold all album contents
     json jsonArray = json::array();
 
-    for (CapsAlbumEntry albumEntry : albumFiles)
+    for (CapsAlbumEntry albumEntry : sdAlbumContent)
     {
         // Screenshot files are always named after the following scheme:
         // yyyy/mm/dd/yyyymmddHHMMSSii-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx.jpg
@@ -101,6 +93,8 @@ std::string AlbumWrapper::GetGalleryContent(int page)
         jsonObj["storedAt"] = "sd";
 
         // Parse out the app title ID to a 16-digit hex string
+        // The frontend can look the title ID up using this list:
+        // https://gist.githubusercontent.com/gneurshkgau/81bcaa7064bd8f98d7dffd1a1f1781a7/raw/title.keys
         char titleID[17];
         sprintf(titleID, "%016" PRIX64, albumEntry.file_id.application_id);
         jsonObj["game"] = titleID;
@@ -178,4 +172,45 @@ std::string AlbumWrapper::GetGalleryContent(int page)
     printf(outJSON.c_str());
 
     return outJSON;
+}
+
+void AlbumWrapper::CacheGalleryContent()
+{  
+    // Cache NAND album
+    CacheAlbum(CapsAlbumStorage_Nand, nandAlbumContent);
+
+    // Cache SD album
+    CacheAlbum(CapsAlbumStorage_Sd, sdAlbumContent);
+}
+
+void AlbumWrapper::CacheAlbum(CapsAlbumStorage location, std::vector<CapsAlbumEntry>& outCache)
+{    
+    // This uses capsa (Capture Service), which is the libnx service to data from the Switch album
+
+    // Cache the NAND album content
+    // Get the total amount of files in the album
+    u64 totalAlbumFileCount;
+    capsaGetAlbumFileCount(location, &totalAlbumFileCount);
+
+    // Resize the cache to the new size
+    outCache.resize(totalAlbumFileCount);
+
+    // Get all album files from the album
+    u64 albumFileCount;
+    CapsAlbumEntry albumFiles[totalAlbumFileCount];
+    Result r = capsaGetAlbumFileList(location, &albumFileCount, albumFiles, totalAlbumFileCount);
+    
+    if (R_FAILED(r))
+    {
+        printf("Failed to get album file list for storage %s: %d-%d\n", location == CapsAlbumStorage_Sd ? "SD" : "NAND", R_MODULE(r), R_DESCRIPTION(r));
+        return;
+    }
+
+    // Add the files from the raw array to the std::vector
+    for (CapsAlbumEntry entry : albumFiles)
+    {
+        outCache.push_back(entry);
+    }
+
+    printf("Cached %ld album files for %s storage\n", totalAlbumFileCount, location == CapsAlbumStorage_Sd ? "SD" : "NAND");
 }

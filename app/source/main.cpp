@@ -89,8 +89,6 @@ int main(int argc, char* argv[])
         webServer->AddMountPoint(albumPath);
     }
 
-    albumWrapper->GetGalleryContent(1);
-
     // Main loop
     while (appletMainLoop())
     {

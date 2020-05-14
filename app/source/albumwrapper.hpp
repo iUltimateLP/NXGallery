@@ -35,7 +35,19 @@ namespace nxgallery
         std::string GetGalleryContent(int page);
 
     private:
+        // Cache all gallery images upon startup and store them so we won't have
+        // to look up the gallery content everytime a request happens
+        void CacheGalleryContent();
+
+        // Caches a specified album in a specified cache
+        void CacheAlbum(CapsAlbumStorage location, std::vector<CapsAlbumEntry>& outCache);
+
+    private:
         // Holds the filesystem of the internal NAND storage
         FsFileSystem nandFileSystem;
+
+        // Holds all album content in cache
+        std::vector<CapsAlbumEntry> nandAlbumContent;
+        std::vector<CapsAlbumEntry> sdAlbumContent;
     };
 }
