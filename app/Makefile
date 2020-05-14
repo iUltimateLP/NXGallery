@@ -44,6 +44,7 @@ APP_TITLE	 =	NXGallery
 APP_AUTHOR	 =	Jonathan Verbeek
 APP_VERSION	 =	1.0
 APP_TITLEID	 =	4200000000000909
+ICON		:=	icon.jpg
 
 TARGET		:=	$(notdir $(CURDIR))
 BUILD		:=	build
