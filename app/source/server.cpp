@@ -136,6 +136,9 @@ void WebServer::ServeRequest(int in, int out, std::vector<const char*> mountPoin
     // Will hold the file descriptor of the file which was requested (e.g. a .html file)
     int fileToServe;
 
+    // For the /gallery endpoint, this holds the page argument
+    int galleryPage = 0;
+
     // While there is data to receive, receive it
     // NOTE: recv() is a blocking call, see here: http://man7.org/linux/man-pages/man2/recv.2.html
     //       Therefore, the code may halt here to wait for incoming data. Some browsers, such as
@@ -238,17 +241,15 @@ void WebServer::ServeRequest(int in, int out, std::vector<const char*> mountPoin
             close(fileToServe);
             printf("Finished request: GET %s\n", url);
         }
-        else if (strcmp(url, "/gallery") == 0)
+        // No file to serve, check for the /gallery endpoint (and also parse out the arguments directly)
+        else if (sscanf(url, "/gallery?page=%d", &galleryPage))
         {
             // First, send a 200 OK back
             sprintf(buffer, "HTTP/1.0 200 OK\nContent-Type: application/json\n\n");
             send(out, buffer, strlen(buffer), 0);
 
-            // Grab the argument from the request
-            
-
             // Ask the album wrapper to process the request
-            std::string jsonData = nxgallery::AlbumWrapper::Get()->GetGalleryContent(1);
+            std::string jsonData = nxgallery::AlbumWrapper::Get()->GetGalleryContent(galleryPage);
 
             // Send out the data to the socket
             const char* dataPtr = jsonData.data();
@@ -265,6 +266,7 @@ void WebServer::ServeRequest(int in, int out, std::vector<const char*> mountPoin
                 dataSize -= bytesSent;
             }
         }
+        // No file, and no endpoint will result in a 404
         else
         {
             // The requested file did not exist, send out a 404
