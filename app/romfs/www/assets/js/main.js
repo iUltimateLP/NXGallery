@@ -114,6 +114,8 @@ class App extends React.Component {
         // Go one page back
         this.setState({
             currentPage: this.state.currentPage - 1
+        }, () => {
+            this.fetchGallery();
         });
     }
 
@@ -121,6 +123,8 @@ class App extends React.Component {
         // Go one page forth
         this.setState({
             currentPage: this.state.currentPage + 1
+        }, () => {
+            this.fetchGallery();
         });
     }
 
@@ -142,9 +146,9 @@ class App extends React.Component {
                 
                 {!this.state.error && <Container align="center" style={{paddingTop: "8px"}}>
                     <ButtonGroup color="secondary">
-                        <Button onClick={(e) => this.prevPage(e)} disabled={this.state.currentPage == 1}><Icon>keyboard_arrow_left</Icon></Button>
+                        <Button onClick={() => this.prevPage()} disabled={this.state.currentPage == 1}><Icon>keyboard_arrow_left</Icon></Button>
                         <Button disabled>{this.state.currentPage}</Button>
-                        <Button onClick={(e) => this.nextPage(e)} disabled={this.state.currentPage == 7}><Icon>keyboard_arrow_right</Icon></Button>
+                        <Button onClick={() => this.nextPage()} disabled={this.state.currentPage == 7}><Icon>keyboard_arrow_right</Icon></Button>
                     </ButtonGroup>
                 </Container>
                 }
