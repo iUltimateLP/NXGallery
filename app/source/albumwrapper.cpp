@@ -12,6 +12,19 @@
 using namespace nxgallery;
 using json = nlohmann::json;
 
+// Overwritten == operator to compare CapsAlbumEntry's
+inline bool operator==(CapsAlbumEntry lhs, const CapsAlbumEntry rhs)
+{
+    // Just compare by the datetime
+    return lhs.file_id.datetime.day == rhs.file_id.datetime.day
+        && lhs.file_id.datetime.month == rhs.file_id.datetime.month
+        && lhs.file_id.datetime.year == rhs.file_id.datetime.year
+        && lhs.file_id.datetime.hour == rhs.file_id.datetime.hour
+        && lhs.file_id.datetime.minute == rhs.file_id.datetime.minute
+        && lhs.file_id.datetime.second == rhs.file_id.datetime.second
+        && lhs.file_id.datetime.id == rhs.file_id.datetime.id;
+}
+
 void AlbumWrapper::Init()
 {
     // SD card storage will already be mounted thanks to romfsInitialize()
@@ -31,6 +44,19 @@ void AlbumWrapper::Init()
         printf("Error mounting NAND storage!\n");
     }
 
+    // Check to see if this system runs on emuMMC just by checking if the emuMMC folder exists
+    struct stat emuMMCstat;
+    if (stat(PATH_SD_EMUMMC, &emuMMCstat) < 0)
+    {
+        printf("System does NOT run on emuMMC\n");
+        isEmuMMC = false;
+    }
+    else
+    {
+        printf("System does run on emuMMC\n");
+        isEmuMMC = true;
+    }
+    
     // Cache the gallery content
     CacheGalleryContent();
 }
@@ -50,11 +76,11 @@ std::vector<const char*> AlbumWrapper::GetAlbumContentPaths()
     std::vector<const char*> paths;
 
     // NAND storage paths
-    paths.push_back("nand:/Album");
+    paths.push_back(PATH_NAND);
 
     // SD card paths
-    paths.push_back("sdmc:/Nintendo/Album");
-    paths.push_back("sdmc:/emuMMC/RAW1/Nintendo/Album");
+    paths.push_back(PATH_SD);
+    paths.push_back(PATH_SD_EMUMMC);
 
     return paths;
 }
@@ -78,7 +104,12 @@ std::string AlbumWrapper::GetGalleryContent(int page)
     // New json array which will hold all album contents
     json jsonArray = json::array();
 
-    for (CapsAlbumEntry albumEntry : sdAlbumContent)
+    // Combine both NAND and SD caches into one vector for iterating
+    std::vector<CapsAlbumEntry> allAlbumContent;
+    allAlbumContent.insert(allAlbumContent.end(), nandAlbumContent.begin(), nandAlbumContent.end());
+    allAlbumContent.insert(allAlbumContent.end(), sdAlbumContent.begin(), sdAlbumContent.end());
+
+    for (CapsAlbumEntry albumEntry : allAlbumContent)
     {
         // Screenshot files are always named after the following scheme:
         // yyyy/mm/dd/yyyymmddHHMMSSii-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx.jpg
@@ -87,10 +118,14 @@ std::string AlbumWrapper::GetGalleryContent(int page)
         // that it's NOT unique per console, and it's changing with the game the screenshot
         // was taken in. Strangely it's not the title ID, but some encryption of it?
 
+        // Figure out if this album entry is stored on the NAND of SD by looking at the
+        // vector this element is in
+        bool isStoredInNand = std::find(nandAlbumContent.begin(), nandAlbumContent.end(), albumEntry) != nandAlbumContent.end();
+
         // The JSON object for this entry of the album
         json jsonObj;
         jsonObj["type"] = "screenshot";
-        jsonObj["storedAt"] = "sd";
+        jsonObj["storedAt"] = isStoredInNand ? "nand" : "sd";
 
         // Parse out the app title ID to a 16-digit hex string
         // The frontend can look the title ID up using this list:
@@ -111,8 +146,11 @@ std::string AlbumWrapper::GetGalleryContent(int page)
         jsonObj["takenAt"] = timestamp;
 
         // The folder where to look for the screenshot
+        // If the entry we're currently looking at is stored in NAND, take the NAND path, otherwise
+        // pick either the SD path or the SD emuMMC path based on where the system is running on
         char imgFolder[64];
-        sprintf(imgFolder, "sdmc:/emuMMC/RAW1/Nintendo/Album/%04d/%02d/%02d/",
+        sprintf(imgFolder, "%s/%04d/%02d/%02d/",
+            isStoredInNand ? PATH_NAND : (isEmuMMC ? PATH_SD_EMUMMC : PATH_SD),
             albumEntry.file_id.datetime.year,
             albumEntry.file_id.datetime.month,
             albumEntry.file_id.datetime.day);
@@ -191,9 +229,6 @@ void AlbumWrapper::CacheAlbum(CapsAlbumStorage location, std::vector<CapsAlbumEn
     // Get the total amount of files in the album
     u64 totalAlbumFileCount;
     capsaGetAlbumFileCount(location, &totalAlbumFileCount);
-
-    // Resize the cache to the new size
-    outCache.resize(totalAlbumFileCount);
 
     // Get all album files from the album
     u64 albumFileCount;

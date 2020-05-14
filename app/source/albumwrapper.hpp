@@ -13,6 +13,11 @@
 // Defines how many items should be returned per page
 #define CONTENT_PER_PAGE 10
 
+// Screenshot locations
+#define PATH_NAND "nand:/Album"
+#define PATH_SD "sdmc:/Nintendo/Album"
+#define PATH_SD_EMUMMC "sdmc:/emuMMC/RAW1/Nintendo/Album"
+
 namespace nxgallery
 {
     // This class will help NXGallery with the Switch'es album.
@@ -45,6 +50,9 @@ namespace nxgallery
     private:
         // Holds the filesystem of the internal NAND storage
         FsFileSystem nandFileSystem;
+
+        // Stores whether this system runs on SD emuMMC
+        bool isEmuMMC = false;
 
         // Holds all album content in cache
         std::vector<CapsAlbumEntry> nandAlbumContent;
