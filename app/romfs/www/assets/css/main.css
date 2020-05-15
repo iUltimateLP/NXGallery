@@ -3,6 +3,18 @@
     Made with love by Jonathan Verbeek (jverbeek.de)
 */
 
+.fa-github {
+    font-size: 16pt;
+}
+
+.fa-github.light {
+    color: #333;
+}
+
+.fa-github.dark {
+    color: #eee;
+}
+
 .grid-cell {
     border-radius: 0;
     margin: 3px;

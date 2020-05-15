@@ -106,7 +106,7 @@ class App extends React.Component {
             galleryContent: [],
             currentPage: 1,
             maxPages: 1,
-            currentTheme: lightTheme,
+            currentTheme: "light",
             error: false
         };
     }
@@ -123,7 +123,7 @@ class App extends React.Component {
             this.setState({
                 galleryContent: result.gallery,
                 maxPages: result.pages,
-                currentTheme: result.theme == "light" ? lightTheme : darkTheme,
+                currentTheme: result.theme,
                 error: false
             })
         }, (error) => {
@@ -153,10 +153,10 @@ class App extends React.Component {
 
     render() {
         return (
-            <ThemeProvider theme={this.state.currentTheme}>
+            <ThemeProvider theme={this.state.currentTheme == "light" ? lightTheme : darkTheme}>
                 <CssBaseline/>
                 <Container style={{flexGrow: 1, padding: "8px"}}>
-                    <Typography variant="h2" color="textPrimary" align="center">NXGallery</Typography>
+                    <Typography variant="h2" color="textPrimary" align="center">NXGallery<a href={"https://github.com/iUltimateLP/NXGallery"} target={"_blank"}><i className={`fab fa-github ${this.state.currentTheme}`}></i></a></Typography>
                     <Typography variant="h6" color="textSecondary" align="center" style={{paddingBottom: "16px"}}>Browse your Nintendo Switch album with ease!</Typography>
 
                     <Grid container spacing={2} justify="center">
@@ -181,7 +181,7 @@ class App extends React.Component {
                     <Container align="center" className={"footer"}>
                         <Typography variant="overline" color="textSecondary" align="center">Made with</Typography>
                         <Icon className={"heart"}>favorite</Icon>
-                        <Typography variant="overline" color="textSecondary" align="center">in Bremen, Germany</Typography>
+                        <Typography variant="overline" color="textSecondary" align="center">in Bremen, Germany</Typography><br/>
                     </Container>
                 </Container>
             </ThemeProvider>
