@@ -24,7 +24,8 @@ const {
     ButtonGroup,
     Icon,
     BottomNavigation,
-    Backdrop
+    Backdrop,
+    CircularProgress
 } = MaterialUI;
 
 // Create a light and dark material UI theme
@@ -32,7 +33,7 @@ const lightTheme = createMuiTheme({
     palette: {
         type: "light",
         primary: {
-            main: "#50f4dc", // 04c7c3
+            main: "#04c7c3",
         },
         secondary: {
             main: "#19857b",
@@ -168,6 +169,10 @@ class App extends React.Component {
 
                     {this.state.error && 
                         <Typography variant="h6" color="error" align="center">Oh no, an error has occured :(</Typography>
+                    }
+
+                    {(this.state.galleryContent.length == 0 && !this.state.error) &&
+                        <CircularProgress color="primary"></CircularProgress>
                     }
                     
                     {!this.state.error && <Container align="center" style={{paddingTop: "20px", paddingBottom: "12px"}}>
