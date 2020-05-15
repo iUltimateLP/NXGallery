@@ -18,7 +18,7 @@ static void printCentered(const char* str, ...)
     va_end(vaList);
 
     int stringLength = std::string(buffer).size();
-    int consoleWidth = 80;
+    int consoleWidth = consoleGetDefault()->windowWidth;
     int leftPadding = (consoleWidth - stringLength) / 2;
 
     for (int i = 0; i < leftPadding; i++)
