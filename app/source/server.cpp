@@ -4,6 +4,7 @@
 */
 
 #include "server.hpp"
+#include "util.hpp"
 #include "albumwrapper.hpp"
 using namespace nxgallery;
 
@@ -59,14 +60,15 @@ void WebServer::Start()
         printf("Failed to listen to the web server socket: %d\n", errno);
         return;
     }
-    
-    printf("Listening to %s:%d\n", inet_ntoa(serv_addr.sin_addr), port);
+
+    printf(CONSOLE_GREEN);
+    printCentered("Open %s:%d in your web browser\n", inet_ntoa(serv_addr.sin_addr), port);
+    printf(CONSOLE_RESET);
 }
 
 void WebServer::AddMountPoint(const char* path)
 {
     // Add it to the mountPoints vector
-    printf("Adding mount point %s\n", path);
     mountPoints.push_back(path);
 }
 
@@ -95,7 +97,9 @@ void WebServer::ServeLoop()
             int acceptedConnection = accept(serverSocket, (struct sockaddr*)&clientAddress, &addrLen);
             if (acceptedConnection > 0)
             {
+#ifdef __DEBUG__
                 printf("Accepted connection from %s:%u\n", inet_ntoa(clientAddress.sin_addr), ntohs(clientAddress.sin_port));
+#endif
 
                 // Serve ("answer") the request which is waiting at the file descriptor accept() returned
                 ServeRequest(acceptedConnection, acceptedConnection, mountPoints);
@@ -190,15 +194,15 @@ void WebServer::ServeRequest(int in, int out, std::vector<const char*> mountPoin
     // Did the request contain a URL for us to serve?
     if (strlen(url) > 0) 
     {
+#ifdef __DEBUG__
         printf("Received request: GET %s\n", url);
-
+#endif
         // Map the requested URL to the path where we serve web assets
         // If the request didn't specify a file but only a "/", we route
         // to index.html aswell.
         if (strcmp(url, "/") == 0)
         {
             strcpy(url, "/index.html");
-            printf("/ => /index.html\n");
         }
 
         // Find the file in one of the mounted folders
@@ -206,18 +210,15 @@ void WebServer::ServeRequest(int in, int out, std::vector<const char*> mountPoin
         {
             // Map the path of the requested file to this mount point
             sprintf(path, "%s%s", mountPoint, url);
-            printf("Testing %s\n", mountPoint);
+
             // Stat to see if the file exists at that mountpoint
             struct stat fileStat;
             if (stat(path, &fileStat) == 0)
             {
                 // If so, break the loop as we have found our file path for the requested file
-                printf("Found file to serve at mountpoint %s\n", mountPoint);
                 break;
             }
         }
-    
-        printf("Serving %s\n", path);
 
         // Open the requested file
         fileToServe = open(path, O_RDONLY);
@@ -239,7 +240,6 @@ void WebServer::ServeRequest(int in, int out, std::vector<const char*> mountPoin
 
             // We successfully read the file to serve, so close it
             close(fileToServe);
-            printf("Finished request: GET %s\n", url);
         }
         // No file to serve, check for the /gallery endpoint (and also parse out the arguments directly)
         else if (sscanf(url, "/gallery?page=%d", &galleryPage))
@@ -291,5 +291,7 @@ void WebServer::Stop()
     shutdown(serverSocket, SHUT_RDWR);
     close(serverSocket);
 
+#ifdef __DEBUG__
     printf("Stopped WebServer\n");
+#endif
 }

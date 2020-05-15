@@ -63,12 +63,16 @@ void AlbumWrapper::Init()
     struct stat emuMMCstat;
     if (stat(PATH_SD_EMUMMC, &emuMMCstat) < 0)
     {
+#ifdef __DEBUG__
         printf("System does NOT run on emuMMC\n");
+#endif
         isEmuMMC = false;
     }
     else
     {
-        printf("System does run on emuMMC\n");
+#ifdef __DEBUG__
+        printf("System runs on emuMMC\n");
+#endif
         isEmuMMC = true;
     }
     
@@ -291,5 +295,7 @@ void AlbumWrapper::CacheAlbum(CapsAlbumStorage location, std::vector<CapsAlbumEn
         outCache.push_back(entry);
     }
 
+#ifdef __DEBUG__
     printf("Cached %ld album files for %s storage\n", totalAlbumFileCount, location == CapsAlbumStorage_Sd ? "SD" : "NAND");
+#endif
 }

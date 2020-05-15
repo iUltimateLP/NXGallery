@@ -72,13 +72,23 @@ int main(int argc, char* argv[])
 
     // Initialize nxlink stdout and stderr redirect
 #ifdef __DEBUG__
-    printf("nxlink initialized: %s\n", inet_ntoa(__nxlink_host));
     nxlinkStdio();
 #endif
 
     // Other initialization goes here. As a demonstration, we print hello world.
-    printf(YELLOW "NXGallery starting up\n");
-    printf(RED "Press + to exit\n" RESET);
+    printCentered("\n\n");
+    printCentered(" _   _  __   __   _____           _   _                       \n");
+    printCentered("| \\ | | \\ \\ / /  / ____|         | | | |                      \n");
+    printCentered("|  \\| |  \\ V /  | |  __    __ _  | | | |   ___   _ __   _   _ \n");
+    printCentered("| . ` |   > <   | | |_ |  / _` | | | | |  / _ \\ | '__| | | | |\n");
+    printCentered("| |\\  |  / . \\  | |__| | | (_| | | | | | |  __/ | |    | |_| |\n");
+    printCentered("|_| \\_| /_/ \\_\\  \\_____|  \\__,_| |_| |_|  \\___| |_|     \\__, |\n");
+    printCentered("                                                         __/ |\n");
+    printCentered("                                                           |___/ \n\n\n\n");
+    
+    printf(CONSOLE_RED);
+    printCentered("Press + to exit\n");
+    printf(CONSOLE_RESET);
 
     // Initialize the album wrapper
     nxgallery::AlbumWrapper::Get()->Init();

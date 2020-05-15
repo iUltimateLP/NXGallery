@@ -23,7 +23,8 @@ const {
     Modal,
     ButtonGroup,
     Icon,
-    BottomNavigation
+    BottomNavigation,
+    Backdrop
 } = MaterialUI;
 
 // Create a light and dark material UI theme

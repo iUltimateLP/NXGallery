@@ -3,14 +3,28 @@
     Made with love by Jonathan Verbeek (jverbeek.de)
 */
 
-// Console colors
-#define ESC(x) "\x1b[" #x
-#define RESET   ESC(0m)
-#define BLACK   ESC(30m)
-#define RED     ESC(31;1m)
-#define GREEN   ESC(32;1m)
-#define YELLOW  ESC(33;1m)
-#define BLUE    ESC(34;1m)
-#define MAGENTA ESC(35;1m)
-#define CYAN    ESC(36;1m)
-#define WHITE   ESC(37;1m)
+#pragma once
+#include <cstdarg>
+#include <string.h>
+#include <string>
+
+// Print a string centered to the console
+static void printCentered(const char* str, ...)
+{
+    char buffer[1024];
+    va_list vaList;
+    va_start(vaList, buffer);
+    vsprintf(buffer, str, vaList);
+    va_end(vaList);
+
+    int stringLength = std::string(buffer).size();
+    int consoleWidth = 80;
+    int leftPadding = (consoleWidth - stringLength) / 2;
+
+    for (int i = 0; i < leftPadding; i++)
+    {
+        printf(" ");
+    }
+
+    printf("%s", buffer);
+}
