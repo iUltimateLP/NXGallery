@@ -84,8 +84,9 @@ int main(int argc, char* argv[])
     printCentered("| |\\  |  / . \\  | |__| | | (_| | | | | | |  __/ | |    | |_| |\n");
     printCentered("|_| \\_| /_/ \\_\\  \\_____|  \\__,_| |_| |_|  \\___| |_|     \\__, |\n");
     printCentered("                                                         __/ |\n");
-    printCentered("                                                           |___/ \n\n\n\n");
-    
+    printCentered("                                                         |___/ \n\n");
+    printCentered(VERSION_STRING);
+    printf("\n\n");
     printf(CONSOLE_RED);
     printCentered("Press + to exit\n");
     printf(CONSOLE_RESET);
