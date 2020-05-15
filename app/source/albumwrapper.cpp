@@ -173,7 +173,6 @@ std::string AlbumWrapper::GetGalleryContent(int page)
 
         // The JSON object for this entry of the album
         json jsonObj;
-        jsonObj["type"] = "screenshot";
         jsonObj["storedAt"] = isStoredInNand ? "nand" : "sd";
 
         // Parse out the app title ID to a 16-digit hex string
@@ -225,6 +224,7 @@ std::string AlbumWrapper::GetGalleryContent(int page)
         
         // Read through the folder until there is no more file to be read
         struct dirent* dirp;
+        std::string foundFileName;
         while ((dirp = readdir(imgDir)) != NULL)
         {
             // Get the name of the current file
@@ -242,12 +242,17 @@ std::string AlbumWrapper::GetGalleryContent(int page)
                     albumEntry.file_id.datetime.day,
                     fileName.c_str());
 
+                foundFileName = fileName;
                 jsonObj["path"] = imgPath;
             }
         }
 
         // Close the directory again
         closedir(imgDir);
+
+        // Determine the type by looking at the file extension
+        bool isVideo = foundFileName.compare(foundFileName.length() - 3, 3, "mp4") == 0;
+        jsonObj["type"] = isVideo ? "video" : "screenshot";
 
         // Push this json object to the array
         jsonArray.push_back(jsonObj);
