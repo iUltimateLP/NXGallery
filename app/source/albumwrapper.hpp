@@ -11,7 +11,7 @@
 #include <switch.h>
 
 // Defines how many items should be returned per page
-#define CONTENT_PER_PAGE 20
+#define CONTENT_PER_PAGE 21
 
 // Screenshot locations
 #define PATH_NAND "nand:/Album"

@@ -25,7 +25,8 @@ const {
     Icon,
     BottomNavigation,
     Backdrop,
-    CircularProgress
+    CircularProgress,
+    CardMedia
 } = MaterialUI;
 
 // Create a light and dark material UI theme
@@ -72,7 +73,7 @@ class GalleryItem extends React.Component {
 
         this.state = {
             item: props.item,
-            isVideo: props.item.path.endsWith(".mp4")
+            isVideo: props.item.type == "video"
         };
     }
 
