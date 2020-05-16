@@ -48,6 +48,24 @@
     vertical-align: middle;
 }
 
+.gallery-content-big {
+    width: 100%;
+    cursor: pointer;
+    border-radius: 4px;
+}
+
+.gallery-content-bar {
+    float: right;
+}
+
+.gallery-content-bar>a[href] {
+    text-decoration: none;
+}
+
+.fa-download {
+    padding-right: 8px;
+}
+
 .footer {
     padding-bottom: 8px;
     width: calc(100% - 8px) !important;

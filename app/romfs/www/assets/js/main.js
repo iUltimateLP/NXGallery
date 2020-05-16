@@ -26,7 +26,18 @@ const {
     BottomNavigation,
     Backdrop,
     CircularProgress,
-    CardMedia
+    CardMedia,
+    Dialog,
+    DialogTitle,
+    DialogContent,
+    DialogContentText,
+    DialogActions,
+    useMediaQuery,
+    TableContainer,
+    Table,
+    TableBody,
+    TableRow,
+    TableCell
 } = MaterialUI;
 
 // Create a light and dark material UI theme
@@ -66,6 +77,9 @@ const darkTheme = createMuiTheme({
     }
 });
 
+let titleIdDictionary = {};
+var isSM = window.matchMedia(lightTheme.breakpoints.down('sm').replace("@media ", "")).matches;
+
 // Component for one gallery content
 class GalleryItem extends React.Component {
     constructor(props) {
@@ -73,12 +87,52 @@ class GalleryItem extends React.Component {
 
         this.state = {
             item: props.item,
-            isVideo: props.item.type == "video"
+            isVideo: props.item.type == "video",
+            dialogOpen: false
         };
+
+        this.imageClicked = this.imageClicked.bind(this);
+        this.dialogClose = this.dialogClose.bind(this);
     }
 
     imageClicked() {
+        this.setState({
+            dialogOpen: true
+        });
+    }
 
+    dialogClose() {
+        this.setState({
+            dialogOpen: false
+        });
+    }
+
+    getDateString() {
+        var date = new Date(this.state.item.takenAt * 1000);
+        var string = date.toLocaleDateString() + " " + date.toLocaleTimeString();
+
+        return string;
+    }
+
+    getGameName() {
+        var tid = this.state.item.game;
+        var tidStripped = tid.substring(0, tid.length - 3);
+        var name = titleIdDictionary[tidStripped];
+        if (name == undefined) {
+            name = this.state.item.game;
+        }
+
+        return name;
+    }
+
+    getDownloadFilename() {
+        var fileName;
+        var date = this.getDateString();
+        date = date.replace(/[:.\s]/g, "_");
+        var extension = this.state.item.type == "video" ? ".mp4" : ".jpg";
+
+        fileName = this.getGameName().replace(/\s/g, "_") + "_" + date + extension;
+        return fileName;
     }
 
     render() {
@@ -91,10 +145,44 @@ class GalleryItem extends React.Component {
         }
 
         return (
-            <Grid item xs={4}>
+            <Grid item xs={isSM ? 12 : 4}>
                 <Paper onClick={this.imageClicked} elevation={2} className={"grid-cell"}>
                     {viewElement}
-                </Paper>           
+                </Paper>
+
+                <Dialog fullScreen={isSM} open={this.state.dialogOpen} onClose={this.dialogClose} aria-labelledby="responsive-dialog-title">
+                    <DialogContent>
+                        <img src={this.state.item.path} className={"gallery-content-big"}></img>
+                        <div className={"gallery-content-bar"}>
+                            <a download={this.getDownloadFilename()} href={this.state.item.path}><Button color="primary"><i className={"fas fa-download"}></i> Download</Button></a>
+                        </div>
+                        <TableContainer>
+                            <Table>
+                                <TableBody>
+                                    <TableRow>
+                                        <TableCell><b>Type</b></TableCell>
+                                        <TableCell align="right">{this.state.item.type == "video" ? "Video" : "Screenshot"}</TableCell>
+                                    </TableRow>
+                                    <TableRow>
+                                        <TableCell><b>Taken at</b></TableCell>
+                                        <TableCell align="right">{this.getDateString()}</TableCell>
+                                    </TableRow>
+                                    <TableRow>
+                                        <TableCell><b>Game</b></TableCell>
+                                        <TableCell align="right">{this.getGameName()}</TableCell>
+                                    </TableRow>
+                                    <TableRow>
+                                        <TableCell><b>Stored at</b></TableCell>
+                                        <TableCell align="right">{this.state.item.storedAt == "sd" ? "SD Card" : "Internal Storage"}</TableCell>
+                                    </TableRow>
+                                </TableBody>
+                            </Table>
+                        </TableContainer>
+                    </DialogContent>
+                    <DialogActions>
+                        <Button autoFocus color="primary" onClick={this.dialogClose}>Close</Button>
+                    </DialogActions>
+                </Dialog>
             </Grid>
         );
     }
@@ -117,6 +205,20 @@ class App extends React.Component {
     componentDidMount() {
         // Fetch the gallery directly at the beginning
         this.fetchGallery();
+
+        // Fetch the title ID directionary
+        fetch("https://gist.githubusercontent.com/gneurshkgau/81bcaa7064bd8f98d7dffd1a1f1781a7/raw/title.keys")
+        .then(res => res.text())
+        .then((result) => {
+            var lines = result.split("\n");
+            lines.forEach((line) => {
+                var strParts = line.split("|");
+                titleIdDictionary[strParts[0].substring(0, strParts[0].length - 3)] = strParts[2];
+            });
+            console.log("Loaded " + lines.length + " title IDs");
+        }, (error) => {
+            console.log("Failed to fetch title ID dictionary!");
+        });
     }
 
     fetchGallery() {
@@ -164,7 +266,7 @@ class App extends React.Component {
 
                     <Grid container spacing={2} justify="center">
                         {this.state.galleryContent.map((value) => (
-                            <GalleryItem key={value.takenAt} item={value} />
+                            <GalleryItem key={value.takenAt} item={value}/>
                         ))}
                     </Grid>
 
