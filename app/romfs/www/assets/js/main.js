@@ -144,7 +144,7 @@ class GalleryItem extends React.Component {
             viewElementBig = <video src={this.state.item.path} controls preload={"none"} className={"gallery-content-big"}></video>;
         } else {
             viewElement = <img src={this.state.item.path}></img>
-            viewElementBig = <img src={this.state.item.path} className={"gallery-content-big"}></img>;
+            viewElementBig = <a href={this.state.item.path} target="_blank"><img src={this.state.item.path} className={"gallery-content-big"}></img></a>;
         }
 
         return (
