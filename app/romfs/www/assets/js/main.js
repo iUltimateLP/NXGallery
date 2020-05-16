@@ -138,10 +138,13 @@ class GalleryItem extends React.Component {
     render() {
         // Decide whether to show a video or an image element
         let viewElement;
+        let viewElementBig;
         if (this.state.isVideo) {
             viewElement = <video src={this.state.item.path} controls preload={"none"}></video>
+            viewElementBig = <video src={this.state.item.path} controls preload={"none"} className={"gallery-content-big"}></video>;
         } else {
             viewElement = <img src={this.state.item.path}></img>
+            viewElementBig = <img src={this.state.item.path} className={"gallery-content-big"}></img>;
         }
 
         return (
@@ -152,7 +155,7 @@ class GalleryItem extends React.Component {
 
                 <Dialog fullScreen={isSM} open={this.state.dialogOpen} onClose={this.dialogClose} aria-labelledby="responsive-dialog-title">
                     <DialogContent>
-                        <img src={this.state.item.path} className={"gallery-content-big"}></img>
+                        {viewElementBig}
                         <div className={"gallery-content-bar"}>
                             <a download={this.getDownloadFilename()} href={this.state.item.path}><Button color="primary"><i className={"fas fa-download"}></i> Download</Button></a>
                         </div>
