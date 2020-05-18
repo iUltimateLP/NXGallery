@@ -16,8 +16,19 @@
 #include "../../common/server.hpp"
 #include "../../common/albumwrapper.hpp"
 
+#define R_ASSERT(res_expr)            \
+    ({                                \
+        const Result rc = (res_expr); \
+        if (R_FAILED(rc))             \
+        {                             \
+            fatalThrow(rc);           \
+        }                             \
+    })
+
 // Taken from libstratosphere for memory management
 #define MEMORY_PAGE_SIZE 0x1000
+#define HEAP_SIZE 0xA7000
+
 #define THREAD_STACK_ALIGNMENT 4 * 1024 // 4kb
 
 extern "C" 
@@ -26,9 +37,8 @@ extern "C"
     u32 __nx_applet_type = AppletType_None;
 
     // Adjust heap size as needed
-    #define INNER_HEAP_SIZE (0x1e * MEMORY_PAGE_SIZE)
-    size_t nx_inner_heap_size = INNER_HEAP_SIZE;
-    char   nx_inner_heap[INNER_HEAP_SIZE];
+    size_t nx_inner_heap_size = HEAP_SIZE;
+    char   nx_inner_heap[HEAP_SIZE];
 }
 
 // Called by libnx to initialize the heap memory we get for this sysmodule
@@ -49,37 +59,27 @@ extern "C" void __libnx_initheap(void)
 // Initializes the sysmodule, used to init services
 extern "C" void __attribute__((weak)) __appInit(void)
 {
-    // Will hold the result of several service inits
-    Result rc;
+    R_ASSERT(smInitialize());
+    R_ASSERT(fsInitialize());
+    R_ASSERT(fsdevMountSdmc());
+    R_ASSERT(capsaInitialize());
+    R_ASSERT(setsysInitialize());
 
-    // Initialize default Switch services and make sure it was successful
-    rc = smInitialize();
-    if (R_FAILED(rc))
-        fatalThrow(MAKERESULT(Module_Libnx, LibnxError_InitFail_SM));
+    static const SocketInitConfig socketInitConfig = {
+        .bsdsockets_version = 1,
 
-    rc = socketInitializeDefault();
-    if (R_FAILED(rc))
-        fatalThrow(MAKERESULT(Module_Libnx, LibnxError_NotInitialized));
+        .tcp_tx_buf_size = 0x800,
+        .tcp_rx_buf_size = 0x800,
+        .tcp_tx_buf_max_size = 0x25000,
+        .tcp_rx_buf_max_size = 0x25000,
 
-    // Initialize the romfs service (needed to serve the static web page from the file system)
-    rc = romfsInit();
-    if (R_FAILED(rc))
-        fatalThrow(MAKERESULT(Module_Libnx, LibnxError_InitFail_FS));
+        //We don't use UDP, set all UDP buffers to 0
+        .udp_tx_buf_size = 0,
+        .udp_rx_buf_size = 0,
 
-    // Initialize the filesystem service (needed to access the filesystem - obviously)
-    rc = fsInitialize();
-    if (R_FAILED(rc))
-        fatalThrow(MAKERESULT(Module_Libnx, LibnxError_InitFail_FS));
-
-    // Initialize the capsa service (needed to access the Switch's album)
-    rc = capsaInitialize();
-    if (R_FAILED(rc))
-        fatalThrow(MAKERESULT(Module_Libnx, LibnxError_NotInitialized));
-
-    // Initialize the setsys service (needed to get the Switch's color theme)
-    rc = setsysInitialize();
-    if (R_FAILED(rc))
-        fatalThrow(MAKERESULT(Module_Libnx, LibnxError_NotInitialized));
+        .sb_efficiency = 1,
+    };
+    R_ASSERT(socketInitialize(&socketInitConfig));
 }
 
 // Called (and not needed because this is a sysmodule) when the user tries to exit this app
@@ -89,22 +89,105 @@ extern "C" void __attribute__((weak)) userAppExit(void);
 extern "C" void __attribute__((weak)) __appExit(void)
 {
     // Exit the loaded modules in reversed order we loaded them
+    socketExit();
     setsysExit();
     capsaExit();
     fsExit();
-    romfsExit();
-    socketExit();
     smExit();
 }
 
 // Main program entrypoint
 int main(int argc, char* argv[])
 {
-    // Initialization code can go here.
+    // Initialize the album wrapper
+    //nxgallery::AlbumWrapper::Get()->Init();
 
-    // Your code / main loop goes here.
-    // If you need threads, you can use threadCreate etc.
+    // Create the web server for hosting the web interface, add romfs:/www as a mount point for
+    // static web assets and start it
+    nxgallery::WebServer* webServer = new nxgallery::WebServer(1234);
+    //webServer->AddMountPoint("romfs:/www");
+    webServer->Start();
 
-    // Deinitialization and resources clean up code can go here.
+    // To run the web server, we need to run in a thread so we won't block the system
+    // The threads are libnx' system
+    static Thread serverThread;
+
+    // Size of the memory stack for the thread. Partially taken off libstratosphere, it's important to align
+    // the stack by 4KB (THREAD_STACK_ALIGNMENT) otherwise we will get a "Bad Input" error when creating the
+    // thread.
+    constexpr std::size_t serverThreadStackSize = 2 * HEAP_SIZE;
+    alignas(THREAD_STACK_ALIGNMENT) static std::uint8_t serverThreadStack[serverThreadStackSize];
+
+    // This is the function which runs in our thread
+    static auto serverThreadFunc = +[](void* args) {
+        // Get back the web server from the args
+        nxgallery::WebServer* webServer = static_cast<nxgallery::WebServer*>(args);
+    
+        while (true)
+        {
+            // Run the serve loop
+            webServer->ServeLoop();
+        }
+    };
+
+    // Create the thread using the thread handle, stack and function above
+    // We cast our worker instance to a void* so we can pass it to the thread
+    // 0x3f is a special thread priority for background tasks
+    // -2 indicates to run the thread on the default CPU core
+    Result r = threadCreate(&serverThread, serverThreadFunc, static_cast<void*>(webServer), serverThreadStack, serverThreadStackSize, 0x3f, -2);
+    if (R_FAILED(r))
+    {
+        fatalThrow(MAKERESULT(Module_Libnx, LibnxError_BadInput));
+
+        // Stop the web server
+        webServer->Stop();
+
+        // Stop the album wrapper
+        //nxgallery::AlbumWrapper::Get()->Shutdown();
+        return 1;
+    }
+
+    // Start the thread after we created it
+    r = threadStart(&serverThread);
+    if (R_FAILED(r))
+    {
+        fatalThrow(MAKERESULT(Module_Libnx, LibnxError_BadInput));
+
+        // Stop the web server
+        webServer->Stop();
+
+        // Stop the album wrapper
+        //nxgallery::AlbumWrapper::Get()->Shutdown();
+        return 1;
+    }
+
+    // Now, this will completely block the execution of this sysmodule until the thread exits
+    r = threadWaitForExit(&serverThread);
+    if (R_FAILED(r))
+    {
+        fatalThrow(MAKERESULT(Module_Libnx, LibnxError_BadInput));
+
+        // Stop the web server
+        webServer->Stop();
+
+        // Stop the album wrapper
+        //nxgallery::AlbumWrapper::Get()->Shutdown();
+        return 1;
+    }
+
+    // Close the thread because this part of the code is only reached when the thread exited already
+    r = threadClose(&serverThread);
+    if (R_FAILED(r))
+    {
+        fatalThrow(MAKERESULT(Module_Libnx, LibnxError_BadInput));
+
+        // Stop the web server
+        webServer->Stop();
+
+        // Stop the album wrapper
+        //nxgallery::AlbumWrapper::Get()->Shutdown();
+        return 1;
+    }
+
     return 0;
 }

@@ -40,6 +40,10 @@ void WebServer::Start()
     recvTimeout.tv_usec = 0;
     setsockopt(serverSocket, SOL_SOCKET, SO_RCVTIMEO, (char*)&recvTimeout, sizeof(recvTimeout));
 
+    // Enable address reusing
+    int yes = 1;
+    setsockopt(serverSocket, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(yes));
+
     // Bind the just-created socket to the address
     if (bind(serverSocket, (struct sockaddr*)&serv_addr, sizeof(serv_addr)) < 0)
     {
