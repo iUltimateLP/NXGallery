@@ -119,7 +119,7 @@ class GalleryItem extends React.Component {
         date = date.replace(/[:.\s]/g, "_");
         var extension = this.state.item.type == "video" ? ".mp4" : ".jpg";
 
-        fileName = this.getGameName().replace(/\s/g, "_") + "_" + date + extension;
+        fileName = this.state.item.game.replace(/\s/g, "_") + "_" + date + extension;
         return fileName;
     }
 
