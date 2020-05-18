@@ -27,6 +27,9 @@ NXGallery was tested working on [Atmosphère](https://github.com/Atmosphere-NX/A
 # Building
 Compiling this project requires a [Nintendo Switch Homebrew dev environment](https://switchbrew.org/wiki/Setting_up_Development_Environment) to be installed. After that, clone this repo and run `make all` in the root of this repo. You will find all compiled files in the `out/` folder.
 
+## Note!
+It is planned to offer a sysmodule version of this project too, but it's not done yet! Please **don't** try to install!
+
 # Credits
 I've used the following libraries, without this project wouldn't have been possible:
  + [libnx](https://github.com/switchbrew/libnx)
