@@ -1,7 +1,7 @@
 # NXGallery
 
 <p align="center">
-    <img height="150" src="https://i.imgur.com/qSORf9M.png">
+    <img height="150" src="https://i.imgur.com/PVXyrXG.png">
 </p>
 
 <p align="center">
