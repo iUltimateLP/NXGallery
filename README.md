@@ -20,7 +20,7 @@
 |![Phone Light](https://i.imgur.com/Uw6O5SI.png)|![Phone Dark](https://i.imgur.com/srVhPpm.png)|
 
 # Installing
-Download the [latest release](https://github.com/iUltimateLP/NXGallery/releases) and extract the .zip archive to the root of your SD card. You can also drag the files to your Switch via [ftpd](https://github.com/mtheall/ftpd). 
+Download the [latest release](https://github.com/iUltimateLP/NXGallery/releases) and drag the `NXGallery.nro` file to the `switch/` folder of your SD card. You can also drag the file to your Switch via [ftpd](https://github.com/mtheall/ftpd). 
 
 NXGallery was tested working on [Atmosphère](https://github.com/Atmosphere-NX/Atmosphere) 0.10.4 and firmware version 9.2.0, but should work above/below, if you know what you're doing.
 
