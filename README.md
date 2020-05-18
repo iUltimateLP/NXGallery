@@ -13,6 +13,12 @@
  + Allows easy and quick sharing of screenshots with your friends
  + Needs Homebrew (CFW) installed on your Switch
 
+# Screenshots
+|||
+|---|---|
+|![PC Light](https://i.imgur.com/VBm4jNg.png)|![PC Dark](https://i.imgur.com/Ie1EG9P.png)|
+|![Phone Light](https://i.imgur.com/Uw6O5SI.png)|![Phone Dark](https://i.imgur.com/srVhPpm.png)|
+
 # Installing
 Download the [latest release](https://github.com/iUltimateLP/NXGallery/releases) and extract the .zip archive to the root of your SD card. You can also drag the files to your Switch via [ftpd](https://github.com/mtheall/ftpd). 
 
