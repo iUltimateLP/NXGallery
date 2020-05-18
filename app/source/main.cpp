@@ -94,8 +94,10 @@ int main(int argc, char* argv[])
     // Initialize the album wrapper
     nxgallery::AlbumWrapper::Get()->Init();
 
-    // Create the web server for hosting the web interface, and start it
+    // Create the web server for hosting the web interface, add romfs:/www as a mount point for
+    // static web assets and start it
     nxgallery::WebServer* webServer = new nxgallery::WebServer(1234);
+    webServer->AddMountPoint("romfs:/www");
     webServer->Start();
 
     printf(CONSOLE_GREEN);

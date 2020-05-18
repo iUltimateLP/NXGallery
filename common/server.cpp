@@ -7,16 +7,10 @@
 #include "albumwrapper.hpp"
 using namespace nxgallery;
 
-// The web server will mount assets under this path
-#define WEB_STATIC_PATH "romfs:/www"
-
 WebServer::WebServer(int port)
 {
     // Store the port
     this->port = port;
-
-    // Add the static web assets path as an initial mount point
-    mountPoints.push_back(WEB_STATIC_PATH);
 
     // We won't initialize the web server here just now, 
     // the caller can do that by calling WebServer::Start
