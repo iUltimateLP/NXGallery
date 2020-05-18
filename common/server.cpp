@@ -4,7 +4,6 @@
 */
 
 #include "server.hpp"
-#include "util.hpp"
 #include "albumwrapper.hpp"
 using namespace nxgallery;
 
@@ -61,9 +60,12 @@ void WebServer::Start()
         return;
     }
 
-    printf(CONSOLE_GREEN);
-    printCentered("Open %s:%d in your web browser\n", inet_ntoa(serv_addr.sin_addr), port);
-    printf(CONSOLE_RESET);
+    sockAddress = serv_addr;
+}
+
+void WebServer::GetAddress(char* buffer)
+{
+    sprintf(buffer, "%s:%d", inet_ntoa(sockAddress.sin_addr), port);
 }
 
 void WebServer::AddMountPoint(const char* path)

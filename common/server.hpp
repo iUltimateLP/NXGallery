@@ -42,6 +42,9 @@ namespace nxgallery
         // The loop for the server to accept and handle requests
         void ServeLoop();
 
+        // Returns the address and port string this server is running on
+        void GetAddress(char* buffer);
+
     private:
         // Serves a incoming request to the speicified out socket
         static void ServeRequest(int in, int out, std::vector<const char*> mountPoints);
@@ -49,6 +52,9 @@ namespace nxgallery
     public:
         // The port the server is running on
         int port;
+
+        // Will hold the full address the socket was bound on
+        struct sockaddr_in sockAddress;
 
         // The socket which was opened for the HTTP server
         int serverSocket;

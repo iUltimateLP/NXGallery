@@ -51,12 +51,11 @@ APP_TITLE	 =	NXGallery
 APP_AUTHOR	 =	Jonathan Verbeek
 APP_VERSION	 =	$(VERSION)
 APP_TITLEID	 =	4200000000000909
-ICON		:=	icon.jpg
 
 TARGET		:=	$(notdir $(CURDIR))
 BUILD		:=	build
 OUT			:=	out
-SOURCES		:=	source
+SOURCES		:=	source ../common
 DATA		:=	data
 INCLUDES	:=	include
 ROMFS		:=	romfs

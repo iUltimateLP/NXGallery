@@ -14,8 +14,8 @@
 
 // Include the headers from NXGallery
 #include "util.hpp"
-#include "server.hpp"
-#include "albumwrapper.hpp"
+#include "../../common/server.hpp"
+#include "../../common/albumwrapper.hpp"
 
 // Loads up and initializes all libnx modules needed
 void initSwitchModules()
@@ -97,6 +97,12 @@ int main(int argc, char* argv[])
     // Create the web server for hosting the web interface, and start it
     nxgallery::WebServer* webServer = new nxgallery::WebServer(1234);
     webServer->Start();
+
+    printf(CONSOLE_GREEN);
+    char serverAddress[32];
+    webServer->GetAddress(serverAddress);
+    printCentered("Open %s in your web browser\n", serverAddress);
+    printf(CONSOLE_RESET);
 
     // Get all paths where Nintendo stores the album content and add these
     // as mount points for the web server
