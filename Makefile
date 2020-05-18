@@ -7,27 +7,38 @@ SWITCH_IP_ADDR = 192.168.178.46
 
 #---------------------------------------------------------------------------------
 
-TITLE_ID = 4200000000000909
+TITLE_ID_APP = 4200000000000909
+TITLE_ID_SYSMODULE = 4300000000000909
 
 #---------------------------------------------------------------------------------
 #	Scripts
 
 # 	Phony target
-.PHONY: all app stage clean
+.PHONY: all app sysmodule stage clean
 
 # 	Build all
-all: app
+all: app sysmodule
 	@:
 
 #	Build the application
 app:
 	@$(MAKE) -C $@
-	@$(MAKE) stage
+	@$(MAKE) stageApp
+
+#	Build the sysmodule
+sysmodule:
+	@$(MAKE) -C $@
+	@$(MAKE) stageSysmodule
 
 #	Stage the release into one single folder which can be copied on the SD card
-stage:
-	mkdir -p out/switch/
-	cp app/out/app.nro out/switch/NXGallery.nro
+stageApp:
+	@mkdir -p out/switch/
+	@cp app/out/app.nro out/switch/NXGallery.nro
+
+stageSysmodule:
+	@mkdir -p out/atmosphere/contents/$(TITLE_ID_SYSMODULE)/flags
+	@touch out/atmosphere/contents/$(TITLE_ID_SYSMODULE)/flags/boot2.flag
+	@cp sysmodule/out/sysmodule.nsp out/atmosphere/contents/$(TITLE_ID_SYSMODULE)/exefs.nsp
 
 #	Transfers the built homebrew app over to the console by using nxlink
 upload:
@@ -37,5 +48,6 @@ upload:
 clean:
 	@rm -rf out/
 	@$(MAKE) clean -C app/
+	@$(MAKE) clean -C sysmodule/
 
 #---------------------------------------------------------------------------------
