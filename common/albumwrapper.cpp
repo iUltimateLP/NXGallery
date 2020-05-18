@@ -175,13 +175,61 @@ std::string AlbumWrapper::GetGalleryContent(int page)
         json jsonObj;
         jsonObj["storedAt"] = isStoredInNand ? "nand" : "sd";
 
-        // Parse out the app title ID to a 16-digit hex string
-        // The frontend can look the title ID up using this list:
-        // https://gist.githubusercontent.com/gneurshkgau/81bcaa7064bd8f98d7dffd1a1f1781a7/raw/title.keys
-        char titleID[17];
-        sprintf(titleID, "%016" PRIX64, albumEntry.file_id.application_id);
-        jsonObj["game"] = titleID;
-        
+        // Retrieve the control.nacp data for the game where the current album entry was taken
+        NsApplicationControlData nacpData;
+        u64 nacpDataSize;
+        Result getNACPResult = nsGetApplicationControlData(NsApplicationControlSource_Storage, albumEntry.file_id.application_id, &nacpData, sizeof(nacpData), &nacpDataSize);
+        if (R_SUCCEEDED(getNACPResult))
+        {
+            // Retrieve the language string for the Switch'es desired language
+            NacpLanguageEntry* nacpLangEntry;
+            Result getLangEntryResult = nsGetApplicationDesiredLanguage(&nacpData.nacp, &nacpLangEntry);
+
+            // If it worked, we can grab the nacpLangEntry->name which will hold the name of the title
+            if (R_SUCCEEDED(getLangEntryResult))
+            {
+                jsonObj["game"] = nacpLangEntry->name;
+            }
+        }
+
+        // If the above didn't work, it's probably not a game where this album entry was created
+        if (!jsonObj.contains("game")) 
+        {
+            // A list of all system applets mapped to their title ID
+            // https://switchbrew.org/wiki/Title_list#System_Applets
+            std::map<u64, const char*> systemTitles;
+            systemTitles[0x0100000000001000] = "Home Menu"; // qlaunch
+            systemTitles[0x0100000000001001] = "Auth"; // auth
+            systemTitles[0x0100000000001002] = "Cabinet"; // cabinet
+            systemTitles[0x0100000000001003] = "Controller"; // controller
+            systemTitles[0x0100000000001004] = "DataErase"; // dataErase
+            systemTitles[0x0100000000001005] = "Error"; // error
+            systemTitles[0x0100000000001006] = "Net Connect"; // netConnect
+            systemTitles[0x0100000000001007] = "Player Select"; // playerSelect
+            systemTitles[0x0100000000001008] = "Keyboard"; // swkbd
+            systemTitles[0x0100000000001009] = "miiEdit"; // miiEdit
+            systemTitles[0x010000000000100A] = "Web Browser"; // web
+            systemTitles[0x010000000000100B] = "eShop"; // shop
+            systemTitles[0x010000000000100C] = "Overlay"; // overlayDisp
+            systemTitles[0x010000000000100D] = "Album"; // photoViewer
+            systemTitles[0x010000000000100F] = "Offline Web Browser"; // offlineWeb
+            systemTitles[0x0100000000001010] = "Share"; // loginShare
+            systemTitles[0x0100000000001011] = "WiFi Web Auth"; // wifiWebAuth
+            systemTitles[0x0100000000001012] = "Starter"; // starter
+            systemTitles[0x0100000000001013] = "My Page"; // myPage
+
+            // If it's one of the above, lookup the name from the map, otherwise it's Unknown
+            if (systemTitles.count(albumEntry.file_id.application_id))
+            {
+                jsonObj["game"] = systemTitles[albumEntry.file_id.application_id];
+            }
+            else
+            {
+                jsonObj["game"] = "Unknown";
+            }
+            
+        }
+
         // Create a UNIX-timestamp from the datetime we get from capsa
         struct tm createdAt;
         createdAt.tm_year = albumEntry.file_id.datetime.year - 1900;

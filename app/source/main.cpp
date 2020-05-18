@@ -44,12 +44,18 @@ void initSwitchModules()
     r = setsysInitialize();
     if (R_FAILED(r))
         printf("ERROR initializing setsys: %d\n", R_DESCRIPTION(r));
+
+    // Initialize the ns service (needed to translate title IDs to title names)
+    r = nsInitialize();
+    if (R_FAILED(r))
+        printf("ERROR initializing ns: %d\n", R_DESCRIPTION(r));
 }
 
 // Closes and unloads all libnx modules we need
 void exitSwitchModules()
 {
     // Exit the loaded modules in reversed order we loaded them
+    nsExit();
     setsysExit();
     capsaExit();
     fsExit();
