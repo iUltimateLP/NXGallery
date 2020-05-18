@@ -77,7 +77,6 @@ const darkTheme = createMuiTheme({
     }
 });
 
-let titleIdDictionary = {};
 var isSM = window.matchMedia(lightTheme.breakpoints.down('sm').replace("@media ", "")).matches;
 
 // Component for one gallery content
@@ -112,17 +111,6 @@ class GalleryItem extends React.Component {
         var string = date.toLocaleDateString() + " " + date.toLocaleTimeString();
 
         return string;
-    }
-
-    getGameName() {
-        var tid = this.state.item.game;
-        var tidStripped = tid.substring(0, tid.length - 3);
-        var name = titleIdDictionary[tidStripped];
-        if (name == undefined) {
-            name = this.state.item.game;
-        }
-
-        return name;
     }
 
     getDownloadFilename() {
@@ -172,7 +160,7 @@ class GalleryItem extends React.Component {
                                     </TableRow>
                                     <TableRow>
                                         <TableCell><b>Game</b></TableCell>
-                                        <TableCell align="right">{this.getGameName()}</TableCell>
+                                        <TableCell align="right">{this.state.item.game}</TableCell>
                                     </TableRow>
                                     <TableRow>
                                         <TableCell><b>Stored at</b></TableCell>
@@ -208,20 +196,6 @@ class App extends React.Component {
     componentDidMount() {
         // Fetch the gallery directly at the beginning
         this.fetchGallery();
-
-        // Fetch the title ID directionary
-        fetch("https://gist.githubusercontent.com/gneurshkgau/81bcaa7064bd8f98d7dffd1a1f1781a7/raw/title.keys")
-        .then(res => res.text())
-        .then((result) => {
-            var lines = result.split("\n");
-            lines.forEach((line) => {
-                var strParts = line.split("|");
-                titleIdDictionary[strParts[0].substring(0, strParts[0].length - 3)] = strParts[2];
-            });
-            console.log("Loaded " + lines.length + " title IDs");
-        }, (error) => {
-            console.log("Failed to fetch title ID dictionary!");
-        });
     }
 
     fetchGallery() {
