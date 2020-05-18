@@ -15,7 +15,7 @@
 
 # Screenshots
 |||
-|---|---|
+|:---:|:---:|
 |![PC Light](https://i.imgur.com/VBm4jNg.png)|![PC Dark](https://i.imgur.com/Ie1EG9P.png)|
 |![Phone Light](https://i.imgur.com/Uw6O5SI.png)|![Phone Dark](https://i.imgur.com/srVhPpm.png)|
 
