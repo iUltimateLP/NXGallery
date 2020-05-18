@@ -14,10 +14,19 @@
  + Needs Homebrew (CFW) installed on your Switch
 
 # Screenshots
-|||
-|:---:|:---:|
-|![PC Light](https://i.imgur.com/VBm4jNg.png)|![PC Dark](https://i.imgur.com/Ie1EG9P.png)|
-|![Phone Light](https://i.imgur.com/Uw6O5SI.png)|![Phone Dark](https://i.imgur.com/srVhPpm.png)|
+<table>
+  <tr align="center">
+      <td><img src="https://i.imgur.com/VBm4jNg.png"></img></td>
+      <td><img src="https://i.imgur.com/Ie1EG9P.png"></img></td>
+  </tr>
+  <tr align="center">
+      <td><img src="https://i.imgur.com/Uw6O5SI.png"></img></td>
+      <td><img src="https://i.imgur.com/srVhPpm.png"></img></td>
+  </tr>
+  <tr align="center">
+    <td colspan="2"><img src="https://i.imgur.com/iVrEFRk.jpg"></img></td>
+  </tr>
+</table>
 
 # Installing
 Download the [latest release](https://github.com/iUltimateLP/NXGallery/releases) and drag the `NXGallery.nro` file to the `switch/` folder of your SD card. You can also drag the file to your Switch via [ftpd](https://github.com/mtheall/ftpd). 
