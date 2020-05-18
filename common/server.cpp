@@ -12,17 +12,22 @@ WebServer::WebServer(int port)
     // Store the port
     this->port = port;
 
+    // We're not running yet
+    isRunning = false;
+
     // We won't initialize the web server here just now, 
     // the caller can do that by calling WebServer::Start
 }
 
 void WebServer::Start()
 {
-    // We might actually register an appletHook here
+    // If we're already running, don't try to start again
+    if (isRunning)
+        return;
 
     // Construct a socket address where we want to listen for requests
     static struct sockaddr_in serv_addr;
-    serv_addr.sin_addr.s_addr = gethostid(); // The Switch'es IP address
+    serv_addr.sin_addr.s_addr = INADDR_ANY; // The Switch'es IP address
     serv_addr.sin_port = htons(port);
     serv_addr.sin_family = AF_INET; // The Switch only supports AF_INET and AF_ROUTE: https://switchbrew.org/wiki/Sockets_services#Socket
 
@@ -40,9 +45,10 @@ void WebServer::Start()
     recvTimeout.tv_usec = 0;
     setsockopt(serverSocket, SOL_SOCKET, SO_RCVTIMEO, (char*)&recvTimeout, sizeof(recvTimeout));
 
-    // Enable address reusing
+    // Enable address and port reusing
     int yes = 1;
     setsockopt(serverSocket, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(yes));
+    setsockopt(serverSocket, SOL_SOCKET, SO_REUSEPORT, &yes, sizeof(yes));
 
     // Bind the just-created socket to the address
     if (bind(serverSocket, (struct sockaddr*)&serv_addr, sizeof(serv_addr)) < 0)
@@ -58,12 +64,15 @@ void WebServer::Start()
         return;
     }
 
-    sockAddress = serv_addr;
+    // Now we're running
+    isRunning = true;
 }
 
 void WebServer::GetAddress(char* buffer)
 {
-    sprintf(buffer, "%s:%d", inet_ntoa(sockAddress.sin_addr), port);
+    static struct sockaddr_in serv_addr;
+    serv_addr.sin_addr.s_addr = gethostid();
+    sprintf(buffer, "%s:%d", inet_ntoa(serv_addr.sin_addr), port);
 }
 
 void WebServer::AddMountPoint(const char* path)
@@ -76,6 +85,10 @@ void WebServer::ServeLoop()
 {
     // Asynchronous / event-driven loop using poll
     // More here: http://man7.org/linux/man-pages/man2/poll.2.html
+
+    // Do not try to serve anything when the server isn't running
+    if (!isRunning)
+        return;
 
     // Will hold the data returned from poll()
     struct pollfd pollInfo;
@@ -107,11 +120,27 @@ void WebServer::ServeLoop()
                 // After we served the request, close the connection
                 if (close(acceptedConnection) < 0)
                 {
+#ifdef __DEBUG__
                     printf("Error closing connection %d: %d %s\n", acceptedConnection, errno, strerror(errno));
+#endif
                 }
             }
+            else if (errno == ECONNABORTED && isRunning)
+            {
+                // Make sure this only happens once
+                isRunning = false;
+
+                // Shutdown and close a socket if still open
+                shutdown(serverSocket, SHUT_RDWR);
+                close(serverSocket);
+
+                // Start the sever again
+                Start();
+            }
+            
         }
     }
+    
 }
 
 void WebServer::ServeRequest(int in, int out, std::vector<const char*> mountPoints)
@@ -287,6 +316,9 @@ void WebServer::ServeRequest(int in, int out, std::vector<const char*> mountPoin
 
 void WebServer::Stop()
 {
+    // Not running anymore
+    isRunning = false;
+
     // Shutdown the server socket, then close it
     shutdown(serverSocket, SHUT_RDWR);
     close(serverSocket);

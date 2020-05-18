@@ -207,7 +207,7 @@ std::string AlbumWrapper::GetGalleryContent(int page)
             systemTitles[0x0100000000001006] = "Net Connect"; // netConnect
             systemTitles[0x0100000000001007] = "Player Select"; // playerSelect
             systemTitles[0x0100000000001008] = "Keyboard"; // swkbd
-            systemTitles[0x0100000000001009] = "miiEdit"; // miiEdit
+            systemTitles[0x0100000000001009] = "Mii Editor"; // miiEdit
             systemTitles[0x010000000000100A] = "Web Browser"; // web
             systemTitles[0x010000000000100B] = "eShop"; // shop
             systemTitles[0x010000000000100C] = "Overlay"; // overlayDisp

@@ -53,8 +53,8 @@ namespace nxgallery
         // The port the server is running on
         int port;
 
-        // Will hold the full address the socket was bound on
-        struct sockaddr_in sockAddress;
+        // Holds whether the server is fully initialized or not
+        bool isRunning;
 
         // The socket which was opened for the HTTP server
         int serverSocket;
