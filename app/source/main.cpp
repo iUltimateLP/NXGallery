@@ -17,6 +17,9 @@
 #include "server.hpp"
 #include "albumwrapper.hpp"
 
+// Port the server should run on
+#define SERVER_PORT 1234
+
 // Loads up and initializes all libnx modules needed
 void initSwitchModules()
 {
@@ -131,7 +134,7 @@ int main(int argc, char* argv[])
 
     // Create the web server for hosting the web interface, add romfs:/www as a mount point for
     // static web assets and start it
-    nxgallery::WebServer* webServer = new nxgallery::WebServer(1234);
+    nxgallery::WebServer* webServer = new nxgallery::WebServer(SERVER_PORT);
     webServer->AddMountPoint("romfs:/www");
     webServer->Start();
 
