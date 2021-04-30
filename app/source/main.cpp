@@ -14,8 +14,8 @@
 
 // Include the headers from NXGallery
 #include "util.hpp"
-#include "../../common/server.hpp"
-#include "../../common/albumwrapper.hpp"
+#include "server.hpp"
+#include "albumwrapper.hpp"
 
 // Loads up and initializes all libnx modules needed
 void initSwitchModules()
@@ -76,6 +76,13 @@ int main(int argc, char* argv[])
     // Initialize all modules NXGallery needs
     initSwitchModules();
 
+    // Configure the gamepad input
+    padConfigureInput(1, HidNpadStyleSet_NpadStandard);
+
+    // Initialize the default gamepad (which reads handheld mode inputs as well as the first connected controller)
+    PadState pad;
+    padInitializeDefault(&pad);
+
     // Initialize nxlink stdout and stderr redirect
 #ifdef __DEBUG__
     nxlinkStdio();
@@ -122,14 +129,14 @@ int main(int argc, char* argv[])
     // Main loop
     while (appletMainLoop())
     {
-        // Scan all the inputs. This should be done once for each frame
-        hidScanInput();
+        // Scan all gamepad. This should be done once for each frame
+        padUpdate(&pad);
 
-        // hidKeysDown returns information about which buttons have been
-        // just pressed in this frame compared to the previous one
-        u64 kDown = hidKeysDown(CONTROLLER_P1_AUTO);
+        // padGetButtonsDown returns the set of buttons that have been
+        // newly pressed in this frame compared to the previous one
+        u64 kDown = padGetButtonsDown(&pad);
 
-        if (kDown & KEY_PLUS)
+        if (kDown & HidNpadButton_Plus)
             break; // break in order to return to hbmenu
 
         // Run the web server loop

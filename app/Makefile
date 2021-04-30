@@ -55,7 +55,7 @@ APP_TITLEID	 =	4200000000000909
 TARGET		:=	$(notdir $(CURDIR))
 BUILD		:=	build
 OUT			:=	out
-SOURCES		:=	source ../common
+SOURCES		:=	source
 DATA		:=	data
 INCLUDES	:=	include
 ROMFS		:=	romfs
@@ -68,7 +68,7 @@ ARCH	:=	-march=armv8-a+crc+crypto -mtune=cortex-a57 -mtp=soft -fPIE
 CFLAGS	:=	-g -Wall -O2 -ffunction-sections \
 			$(ARCH) $(DEFINES)
 
-CFLAGS	+=	$(INCLUDE) -D__SWITCH__ -DVERSION_STRING="\"$(VERSION)\"" #-D__DEBUG__
+CFLAGS	+=	$(INCLUDE) -D__SWITCH__ -DVERSION_STRING="\"$(VERSION)\"" -D__DEBUG__
 
 CXXFLAGS	:= $(CFLAGS) -fno-rtti -Wno-sign-compare
 
