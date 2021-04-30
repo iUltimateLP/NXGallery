@@ -88,7 +88,25 @@ int main(int argc, char* argv[])
     nxlinkStdio();
 #endif
 
-    // Other initialization goes here. As a demonstration, we print hello world.
+    // Print a welcome message
+    // Let's be nice!
+    std::vector<std::string> NiceLines = {
+        "You look nice today!",
+        "I miss Brewster...",
+        "Did you know you can calculate the times the DVD logo hits the corner?",
+        "Much love to the whole Switch Homebrew team!",
+        "I wish I was better at Kart",
+        "You should try Minecraft!",
+        "Nintendo... seriously?",
+        "Did you know? The moon has \"moonquakes!\"",
+        "You now breathe in manual mode!",
+        "Rabbits are incapable of spewing.",
+        "Bees sometimes sting other bees",
+        "I should add more features instead of thinking of lines to put here."
+    };
+
+    srand(time(NULL));
+
     printCentered("\n\n");
     printCentered(" _   _  __   __   _____           _   _                       \n");
     printCentered("| \\ | | \\ \\ / /  / ____|         | | | |                      \n");
@@ -100,8 +118,12 @@ int main(int argc, char* argv[])
     printCentered("                                                         |___/ \n\n");
     printCentered(VERSION_STRING);
     printf("\n\n");
+    printf(CONSOLE_YELLOW);
+    printCentered((" +++ " + NiceLines[rand() % NiceLines.size()] + " +++ ").c_str());
+    printf("\n\n");
     printf(CONSOLE_RED);
-    printCentered("Press + to exit\n");
+    printCentered("Press + to exit");
+    printf("\n\n");
     printf(CONSOLE_RESET);
 
     // Initialize the album wrapper

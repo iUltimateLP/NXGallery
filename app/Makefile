@@ -15,7 +15,7 @@ include $(DEVKITPRO)/libnx/switch_rules
 # Versioning
 export GITREV := $(shell git rev-parse HEAD 2>/dev/null | cut -c1-7)
 export VERSION_MAJOR := 1
-export VERSION_MINOR := 0
+export VERSION_MINOR := 1
 export VERSION_MICRO := 0
 export VERSION := $(VERSION_MAJOR).$(VERSION_MINOR).$(VERSION_MICRO)-$(GITREV)
 
@@ -68,7 +68,7 @@ ARCH	:=	-march=armv8-a+crc+crypto -mtune=cortex-a57 -mtp=soft -fPIE
 CFLAGS	:=	-g -Wall -O2 -ffunction-sections \
 			$(ARCH) $(DEFINES)
 
-CFLAGS	+=	$(INCLUDE) -D__SWITCH__ -DVERSION_STRING="\"$(VERSION)\"" -D__DEBUG__
+CFLAGS	+=	$(INCLUDE) -D__SWITCH__ -DVERSION_STRING="\"$(VERSION)\"" #-D__DEBUG__
 
 CXXFLAGS	:= $(CFLAGS) -fno-rtti -Wno-sign-compare
 
