@@ -59,21 +59,31 @@ void AlbumWrapper::Init()
         printf("Error mounting NAND storage!\n");
     }
 
-    // Check to see if this system runs on emuMMC just by checking if the emuMMC folder exists
+    // Determine the type of Homebrew installation this app runs on just by checking if the emuMMC folders exists
     struct stat emuMMCstat;
-    if (stat(PATH_SD_EMUMMC, &emuMMCstat) < 0)
+    if (stat(PATH_SD_EMUMMC_FILEBASED, &emuMMCstat) == 0)
     {
+        installationType = HomebrewInstallationType::SD_EmuMMC_Filebased;
+
 #ifdef __DEBUG__
-        printf("System does NOT run on emuMMC\n");
+        printf("Installation type is filebased EmuMMC\n");
 #endif
-        isEmuMMC = false;
+    }
+    else if (stat(PATH_SD_EMUMMC, &emuMMCstat) == 0)
+    {
+        installationType = HomebrewInstallationType::SD_EmuMMC;
+
+#ifdef __DEBUG__
+        printf("Installation type is standard EmuMMC\n");
+#endif
     }
     else
     {
+        installationType = HomebrewInstallationType::Nand;
+
 #ifdef __DEBUG__
-        printf("System runs on emuMMC\n");
+        printf("Installation type is Nand\n");
 #endif
-        isEmuMMC = true;
     }
     
     // Cache the gallery content
@@ -100,8 +110,28 @@ std::vector<const char*> AlbumWrapper::GetAlbumContentPaths()
     // SD card paths
     paths.push_back(PATH_SD);
     paths.push_back(PATH_SD_EMUMMC);
+    paths.push_back(PATH_SD_EMUMMC_FILEBASED);
 
     return paths;
+}
+
+std::string AlbumWrapper::GetScreenshotDir()
+{
+    // Switch on the installation type
+    switch (installationType)
+    {
+        case HomebrewInstallationType::Nand:
+            return PATH_NAND;
+
+        case HomebrewInstallationType::SD_EmuMMC:
+            return PATH_SD_EMUMMC;
+
+        case HomebrewInstallationType::SD_EmuMMC_Filebased:
+            return PATH_SD_EMUMMC_FILEBASED;
+
+        default:
+            return PATH_NAND;
+    }
 }
 
 std::string AlbumWrapper::GetGalleryContent(int page)
@@ -246,7 +276,7 @@ std::string AlbumWrapper::GetGalleryContent(int page)
         // pick either the SD path or the SD emuMMC path based on where the system is running on
         char imgFolder[64];
         sprintf(imgFolder, "%s/%04d/%02d/%02d/",
-            isStoredInNand ? PATH_NAND : (isEmuMMC ? PATH_SD_EMUMMC : PATH_SD),
+            isStoredInNand ? PATH_NAND : GetScreenshotDir().c_str(),
             albumEntry.file_id.datetime.year,
             albumEntry.file_id.datetime.month,
             albumEntry.file_id.datetime.day);
