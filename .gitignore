@@ -7,7 +7,3 @@ out/
 *.elf
 *.nacp
 *.nro
-
-# Borealis resources, they get copied at build time
-resources/
-app/romfs/shaders/

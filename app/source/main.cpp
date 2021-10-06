@@ -69,36 +69,48 @@ void exitSwitchModules()
     socketExit();
 }
 
-// Initializes the borealis UI library
-void initBorealis()
+// Test borealis main activity
+class MainActivity : public brls::Activity
 {
-    
+public:
+    CONTENT_FROM_XML_RES("activity/main.xml");
+};
+
+// Initializes the borealis UI library
+bool initBorealis()
+{
+    // Set log level
+    brls::Logger::setLogLevel(brls::LogLevel::DEBUG);
+
+    // Init the app and internalization
+    if (!brls::Application::init())
+    {
+        brls::Logger::error("Unable to initialize UI! Exiting");
+        return false;
+    }
+
+    // Create main window
+    brls::Application::createWindow("NXGallery");
+
+    // Have the application register an action on every activity that will quit
+    brls::Application::setGlobalQuit(true);
+
+    // Some default styles
+    brls::getStyle().addMetric("about/padding_top_bottom", 50);
+    brls::getStyle().addMetric("about/padding_sides", 75);
+    brls::getStyle().addMetric("about/description_margin", 50);
+
+    // Push the main activity to the stack
+    brls::Application::pushActivity(new MainActivity());
+
+    return true;
 }
 
 // Main program entrypoint
 int main(int argc, char* argv[])
 {
-    // This example uses a text console, as a simple way to output text to the screen.
-    // If you want to write a software-rendered graphics application,
-    //   take a look at the graphics/simplegfx example, which uses the libnx Framebuffer API instead.
-    // If on the other hand you want to write an OpenGL based application,
-    //   take a look at the graphics/opengl set of examples, which uses EGL instead.
-    consoleInit(NULL);
-
     // Initialize all modules NXGallery needs
     initSwitchModules();
-
-    // Configure the gamepad input
-    padConfigureInput(1, HidNpadStyleSet_NpadStandard);
-
-    // Initialize the default gamepad (which reads handheld mode inputs as well as the first connected controller)
-    PadState pad;
-    padInitializeDefault(&pad);
-
-    // Initialize nxlink stdout and stderr redirect
-#ifdef __DEBUG__
-    nxlinkStdio();
-#endif
 
     // Print a welcome message
     // Let's be nice!
@@ -117,27 +129,6 @@ int main(int argc, char* argv[])
         "I should add more features instead of thinking of lines to put here."
     };
 
-    srand(time(NULL));
-
-    printCentered("\n\n");
-    printCentered(" _   _  __   __   _____           _   _                       \n");
-    printCentered("| \\ | | \\ \\ / /  / ____|         | | | |                      \n");
-    printCentered("|  \\| |  \\ V /  | |  __    __ _  | | | |   ___   _ __   _   _ \n");
-    printCentered("| . ` |   > <   | | |_ |  / _` | | | | |  / _ \\ | '__| | | | |\n");
-    printCentered("| |\\  |  / . \\  | |__| | | (_| | | | | | |  __/ | |    | |_| |\n");
-    printCentered("|_| \\_| /_/ \\_\\  \\_____|  \\__,_| |_| |_|  \\___| |_|     \\__, |\n");
-    printCentered("                                                         __/ |\n");
-    printCentered("                                                         |___/ \n\n");
-    printCentered(VERSION_STRING);
-    printf("\n\n");
-    printf(CONSOLE_YELLOW);
-    printCentered((" +++ " + NiceLines[rand() % NiceLines.size()] + " +++ ").c_str());
-    printf("\n\n");
-    printf(CONSOLE_RED);
-    printCentered("Press + to exit");
-    printf("\n\n");
-    printf(CONSOLE_RESET);
-
     // Initialize the album wrapper
     nxgallery::AlbumWrapper::Get()->Init();
 
@@ -147,11 +138,9 @@ int main(int argc, char* argv[])
     webServer->AddMountPoint("romfs:/www");
     webServer->Start();
 
-    printf(CONSOLE_GREEN);
     char serverAddress[32];
     webServer->GetAddress(serverAddress);
-    printCentered("Open %s in your web browser\n", serverAddress);
-    printf(CONSOLE_RESET);
+    printf("Open %s in your web browser\n", serverAddress);
 
     // Get all paths where Nintendo stores the album content and add these
     // as mount points for the web server
@@ -160,24 +149,19 @@ int main(int argc, char* argv[])
         webServer->AddMountPoint(albumPath);
     }
 
-    // Main loop
-    while (appletMainLoop())
+    // Initialize Borealis
+    if (!initBorealis())
     {
-        // Scan all gamepad. This should be done once for each frame
-        padUpdate(&pad);
+        // If it didn't work, exit all previously opened Switch modules and return this app with an error
+        exitSwitchModules();
+        return EXIT_FAILURE;
+    }
 
-        // padGetButtonsDown returns the set of buttons that have been
-        // newly pressed in this frame compared to the previous one
-        u64 kDown = padGetButtonsDown(&pad);
-
-        if (kDown & HidNpadButton_Plus)
-            break; // break in order to return to hbmenu
-
+    // Run Borealis 
+    while (brls::Application::mainLoop())
+    {
         // Run the web server loop
         webServer->ServeLoop();
-
-        // Update the console, sending a new frame to the display
-        consoleUpdate(NULL);
     }
 
     // Stop the web server
@@ -189,7 +173,6 @@ int main(int argc, char* argv[])
     // Deinitialize all modules NXGallery needed
     exitSwitchModules();
 
-    // Deinitialize and clean up resources used by the console (important!)
-    consoleExit(NULL);
-    return 0;
+    // Return gracefully
+    return EXIT_SUCCESS;
 }

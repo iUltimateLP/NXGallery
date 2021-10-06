@@ -98,7 +98,11 @@ include $(TOPDIR)/lib/borealis/library/borealis.mk
 ifneq ($(BUILD),$(notdir $(CURDIR)))
 #---------------------------------------------------------------------------------
 
-export OUTPUT	:=	$(CURDIR)/$(TARGET)
+export OUTPUT_ROOT	:=	$(CURDIR)/$(OUT)
+
+$(shell mkdir -p $(OUTPUT_ROOT))
+
+export OUTPUT	:=	$(CURDIR)/$(OUT)/$(TARGET)
 export TOPDIR	:=	$(CURDIR)
 
 export VPATH	:=	$(foreach dir,$(SOURCES),$(CURDIR)/$(dir)) \
@@ -180,7 +184,7 @@ ifeq ($(strip $(NO_ICON)),)
 endif
 
 ifeq ($(strip $(NO_NACP)),)
-	export NROFLAGS += --nacp=$(CURDIR)/$(TARGET).nacp
+	export NROFLAGS += --nacp=$(CURDIR)/$(OUT)/$(TARGET).nacp
 endif
 
 ifneq ($(APP_TITLEID),)
@@ -199,7 +203,6 @@ all: $(ROMFS_TARGETS) | $(BUILD)
 
 $(BUILD):
 	@mkdir -p $@
-	@cp -r $(CURDIR)/lib/borealis/resources $(CURDIR)/resources
 
 ifneq ($(strip $(ROMFS_TARGETS)),)
 
