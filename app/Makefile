@@ -68,9 +68,10 @@ ARCH	:=	-march=armv8-a+crc+crypto -mtune=cortex-a57 -mtp=soft -fPIE
 CFLAGS	:=	-g -Wall -O2 -ffunction-sections \
 			$(ARCH) $(DEFINES)
 
-CFLAGS	+=	$(INCLUDE) -D__SWITCH__ -DVERSION_STRING="\"$(VERSION)\"" #-D__DEBUG__
+CFLAGS	+=	$(INCLUDE) -D__SWITCH__ -DVERSION_STRING="\"$(VERSION)\"" -D__BSD_VISIBLE=1 -D_BSD_SOURCE=1
+CFLAGS	+= -D__DEBUG__
 
-CXXFLAGS	:= $(CFLAGS) -fno-rtti -Wno-sign-compare
+CXXFLAGS	:= $(CFLAGS) -std=c++1z -Wno-sign-compare
 
 ASFLAGS	:=	-g $(ARCH)
 LDFLAGS	=	-specs=$(DEVKITPRO)/libnx/switch.specs -g $(ARCH) -Wl,-Map,$(notdir $*.map)
@@ -83,6 +84,14 @@ LIBS	:= -lnx
 #---------------------------------------------------------------------------------
 LIBDIRS	:= $(PORTLIBS) $(LIBNX)
 
+#---------------------------------------------------------------------------------
+# Borealis settings
+#---------------------------------------------------------------------------------
+BOREALIS_PATH := /lib/borealis
+
+include $(TOPDIR)/lib/borealis/library/borealis.mk
+
+OUT_SHADERS	:=	shaders
 
 #---------------------------------------------------------------------------------
 # no real need to edit anything past this point unless you need to add additional
@@ -182,6 +191,7 @@ all: $(BUILD)
 
 $(BUILD):
 	@[ -d $@ ] || mkdir -p $@
+	@cp -r $(CURDIR)/lib/borealis/resources $(CURDIR)/resources
 	@$(MAKE) --no-print-directory -C $(BUILD) -f $(CURDIR)/Makefile
 
 #---------------------------------------------------------------------------------

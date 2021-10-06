@@ -29,10 +29,10 @@ void WebServer::Start()
     static struct sockaddr_in serv_addr;
     serv_addr.sin_addr.s_addr = INADDR_ANY; // The Switch'es IP address
     serv_addr.sin_port = htons(port);
-    serv_addr.sin_family = AF_INET; // The Switch only supports AF_INET and AF_ROUTE: https://switchbrew.org/wiki/Sockets_services#Socket
+    serv_addr.sin_family = PF_INET; // The Switch only supports AF_INET and AF_ROUTE: https://switchbrew.org/wiki/Sockets_services#Socket
 
     // Create a new STREAM IPv4 socket
-    serverSocket = socket(PF_INET, SOCK_STREAM, 0);
+    serverSocket = socket(AF_INET, SOCK_STREAM, 0);
     if (serverSocket < 0)
     {
         printf("Failed to create a web server socket: %d\n", errno);

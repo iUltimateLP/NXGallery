@@ -21,7 +21,8 @@ all: app
 
 #	Build the application
 app:
-	@$(MAKE) -C $@
+	@$(MAKE) -j -C app/lib/borealis
+	@$(MAKE) -C app
 	@$(MAKE) stageApp
 
 #	Stage the release into one single folder which can be copied on the SD card

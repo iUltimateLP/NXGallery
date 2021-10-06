@@ -4,3 +4,6 @@
 # Artifact / output folders
 build/
 out/
+
+# Borealis resources/ folder, gets copied at build time
+resources/
