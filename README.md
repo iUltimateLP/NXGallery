@@ -34,7 +34,11 @@ Download the [latest release](https://github.com/iUltimateLP/NXGallery/releases)
 NXGallery was tested working on [Atmosphère](https://github.com/Atmosphere-NX/Atmosphere) 0.12.0 and firmware version 10.0.2, but should work above/below, if you know what you're doing.
 
 # Building
-Compiling this project requires a [Nintendo Switch Homebrew dev environment](https://switchbrew.org/wiki/Setting_up_Development_Environment) to be installed. After that, clone this repo and run `make all` in the root of this repo. You will find all compiled files in the `out/` folder.
+Compiling this project requires a [Nintendo Switch Homebrew dev environment](https://switchbrew.org/wiki/Setting_up_Development_Environment) to be installed. Then, install the following dependencies (required for [borealis](https://github.com/natinusala/borealis)):
+```
+(sudo) (dkp-)pacman -S switch-glfw switch-mesa switch-glm
+```
+After that, clone this repo and run `make all` in the root of this repo. You will find all compiled files in the `out/` folder.
 
 # Credits
 I've used the following libraries, without this project wouldn't have been possible:
@@ -42,3 +46,4 @@ I've used the following libraries, without this project wouldn't have been possi
  + [Atmosphère](https://github.com/Atmosphere-NX/Atmosphere)
  + [nlohmann/json](https://github.com/nlohmann/json)
  + [React](https://reactjs.org/) + [React Material-UI](https://material-ui.com/)
+ + [Borealis](https://github.com/natinusala/borealis)

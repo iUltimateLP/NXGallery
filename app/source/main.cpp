@@ -17,6 +17,9 @@
 #include "server.hpp"
 #include "albumwrapper.hpp"
 
+// Include borealis
+#include <borealis.hpp>
+
 // Port the server should run on
 #define SERVER_PORT 1234
 
@@ -64,6 +67,12 @@ void exitSwitchModules()
     fsExit();
     romfsExit();
     socketExit();
+}
+
+// Initializes the borealis UI library
+void initBorealis()
+{
+    
 }
 
 // Main program entrypoint

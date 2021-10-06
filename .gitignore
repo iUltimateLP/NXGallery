@@ -4,6 +4,10 @@
 # Artifact / output folders
 build/
 out/
+*.elf
+*.nacp
+*.nro
 
-# Borealis resources/ folder, gets copied at build time
+# Borealis resources, they get copied at build time
 resources/
+app/romfs/shaders/
