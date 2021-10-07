@@ -12,12 +12,12 @@
     <!-- Main content box -->
     <brls:Box
         width="100%"
-        height="100%"
+        height="auto"
         axis="column"
-        paddingTop="50"
-        paddingBottom="50"
         paddingLeft="75"
-        paddingRight="75" >
+        paddingRight="75"
+        justifyContent="center"
+        alignItems="center" >
 
         <!-- QR code -->
         <QrCode
