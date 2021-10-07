@@ -21,7 +21,6 @@ all: app
 
 #	Build the application
 app:
-	@$(MAKE) -j -C app/lib/borealis
 	@$(MAKE) -j -C app
 	@$(MAKE) stageApp
 
@@ -38,5 +37,6 @@ upload:
 clean:
 	@rm -rf out/
 	@$(MAKE) clean -C app/
+	@$(MAKE) clean -C app/lib/borealis
 
 #---------------------------------------------------------------------------------

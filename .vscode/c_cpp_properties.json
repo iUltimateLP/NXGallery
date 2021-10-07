@@ -19,7 +19,7 @@
             "defines": [
                 "SWITCH",
                 "__SWITCH__",
-                "DEBUG",
+                "__DEBUG__",
                 "VERSION_STRING=\"N/A\"",
                 "__BSD_VISIBLE=1",
                 "_BSD_SOURCE=1"

@@ -241,6 +241,7 @@ endif
 #---------------------------------------------------------------------------------
 clean:
 	@echo clean ...
+	@rm -rf out/
 ifeq ($(strip $(APP_JSON)),)
 	@rm -fr $(BUILD) $(ROMFS_FOLDERS) $(TARGET).nro $(TARGET).nacp $(TARGET).elf
 else
