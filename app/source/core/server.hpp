@@ -18,7 +18,7 @@
 #include <vector>
 #include <switch.h>
 
-namespace nxgallery
+namespace nxgallery::core
 {
     // This class will handle the web server running.
     // Therefore it's a very important part for this app

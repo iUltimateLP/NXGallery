@@ -9,7 +9,7 @@
 #include <errno.h>
 #include <inttypes.h>
 #include <dirent.h>
-using namespace nxgallery;
+using namespace nxgallery::core;
 using json = nlohmann::json;
 
 // Needed for compiler

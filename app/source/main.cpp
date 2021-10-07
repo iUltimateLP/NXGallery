@@ -12,12 +12,11 @@
 // Include the main libnx system header, for Switch development
 #include <switch.h>
 
-// Include the headers from NXGallery
-#include "util.hpp"
-#include "server.hpp"
-#include "albumwrapper.hpp"
+// Include NXGallery core
+#include "core/server.hpp"
+#include "core/albumwrapper.hpp"
 
-// Include UI code
+// Include NXGallery UI
 #include "ui/qrcode.hpp"
 #include "ui/mainactivity.hpp"
 
@@ -95,6 +94,12 @@ bool initBorealis()
     // Register custom fonts
     brls::Application::loadFontFromFile("mono", "romfs:/robotomono/RobotoMono-Regular.ttf");
 
+    // Register custom theme variables
+    brls::getLightTheme().addColor("qrcode/foreground", nvgRGB(0, 0, 0));
+    brls::getLightTheme().addColor("qrcode/background", brls::Application::getTheme().getColor("brls/background"));
+    brls::getDarkTheme().addColor("qrcode/foreground", nvgRGB(255, 255, 255));
+    brls::getDarkTheme().addColor("qrcode/background", brls::Application::getTheme().getColor("brls/background"));
+
     // Register custom components
     brls::Application::registerXMLView("QrCode", nxgallery::ui::QrCode::create);
 
@@ -123,11 +128,11 @@ int main(int argc, char* argv[])
     }
 
     // Initialize the album wrapper
-    nxgallery::AlbumWrapper::Get()->Init();
+    nxgallery::core::AlbumWrapper::Get()->Init();
 
     // Create the web server for hosting the web interface, add romfs:/www as a mount point for
     // static web assets and start it
-    nxgallery::WebServer* webServer = new nxgallery::WebServer(SERVER_PORT);
+    nxgallery::core::WebServer* webServer = new nxgallery::core::WebServer(SERVER_PORT);
     webServer->AddMountPoint("romfs:/www");
     webServer->Start();
 
@@ -141,7 +146,7 @@ int main(int argc, char* argv[])
 
     // Get all paths where Nintendo stores the album content and add these
     // as mount points for the web server
-    for (const char* albumPath : nxgallery::AlbumWrapper::Get()->GetAlbumContentPaths())
+    for (const char* albumPath : nxgallery::core::AlbumWrapper::Get()->GetAlbumContentPaths())
     {
         webServer->AddMountPoint(albumPath);
     }
@@ -157,7 +162,7 @@ int main(int argc, char* argv[])
     webServer->Stop();
 
     // Stop the album wrapper
-    nxgallery::AlbumWrapper::Get()->Shutdown();
+    nxgallery::core::AlbumWrapper::Get()->Shutdown();
 
     // Deinitialize all modules NXGallery needed
     exitSwitchModules();

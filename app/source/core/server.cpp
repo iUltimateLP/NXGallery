@@ -5,7 +5,7 @@
 
 #include "server.hpp"
 #include "albumwrapper.hpp"
-using namespace nxgallery;
+using namespace nxgallery::core;
 
 WebServer::WebServer(int port)
 {
@@ -278,7 +278,7 @@ void WebServer::ServeRequest(int in, int out, std::vector<const char*> mountPoin
             send(out, buffer, strlen(buffer), 0);
 
             // Ask the album wrapper to process the request
-            std::string jsonData = nxgallery::AlbumWrapper::Get()->GetGalleryContent(galleryPage);
+            std::string jsonData = nxgallery::core::AlbumWrapper::Get()->GetGalleryContent(galleryPage);
 
             // Send out the data to the socket
             const char* dataPtr = jsonData.data();

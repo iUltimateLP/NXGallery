@@ -19,7 +19,7 @@
 #define PATH_SD_EMUMMC "sdmc:/emuMMC/RAW1/Nintendo/Album"
 #define PATH_SD_EMUMMC_FILEBASED "sdmc:/emuMMC/SD00/Nintendo/Album"
 
-namespace nxgallery
+namespace nxgallery::core
 {
     // Type of homebrew installation
     enum HomebrewInstallationType

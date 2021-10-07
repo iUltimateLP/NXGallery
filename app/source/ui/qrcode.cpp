@@ -67,6 +67,10 @@ unsigned char* QrCode::generateQRCode(int* outWidthHeight)
     const qrcodegen::QrCode::Ecc errorCorrection = qrcodegen::QrCode::Ecc::LOW;
     const qrcodegen::QrCode qrCode = qrcodegen::QrCode::encodeText(this->text.c_str(), errorCorrection);
 
+    // Get the colors from the theme in which we will paint this QR code
+    NVGcolor foregroundColor = brls::Application::getTheme().getColor("qrcode/foreground");
+    NVGcolor backgroundColor = brls::Application::getTheme().getColor("qrcode/background");
+
     // Allocate a buffer for the image
     int numPixelsPerLine = qrCode.getSize() * pxPerModule;
     int bufferSize = numPixelsPerLine * numPixelsPerLine * 4; // width * height * number of channels (RGBA = 4)
@@ -91,14 +95,14 @@ unsigned char* QrCode::generateQRCode(int* outWidthHeight)
                     int y = (mY * pxPerModule) + pY;
 
                     // Calculate the color of this pixel
-                    unsigned char color = moduleValue ? 0 : 255;
+                    NVGcolor color = moduleValue ? foregroundColor : backgroundColor;
 
                     // Set the memory for this pixel
                     // See: https://stackoverflow.com/questions/3902648/c-representing-a-3d-array-in-a-1d-array
-                    memset(&buffer[(y * numPixelsPerLine + x) * 4 + 3], 255,   sizeof(unsigned char)); // Alpha
-                    memset(&buffer[(y * numPixelsPerLine + x) * 4 + 2], color, sizeof(unsigned char)); // Blue
-                    memset(&buffer[(y * numPixelsPerLine + x) * 4 + 1], color, sizeof(unsigned char)); // Green
-                    memset(&buffer[(y * numPixelsPerLine + x) * 4 + 0], color, sizeof(unsigned char)); // Red
+                    memset(&buffer[(y * numPixelsPerLine + x) * 4 + 3], (unsigned char)(color.a * 255), sizeof(unsigned char)); // Alpha
+                    memset(&buffer[(y * numPixelsPerLine + x) * 4 + 2], (unsigned char)(color.b * 255), sizeof(unsigned char)); // Blue
+                    memset(&buffer[(y * numPixelsPerLine + x) * 4 + 1], (unsigned char)(color.g * 255), sizeof(unsigned char)); // Green
+                    memset(&buffer[(y * numPixelsPerLine + x) * 4 + 0], (unsigned char)(color.r * 255), sizeof(unsigned char)); // Red
                 }
             }
         }

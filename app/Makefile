@@ -55,7 +55,7 @@ APP_TITLEID	 =	4200000000000909
 TARGET		:=	$(notdir $(CURDIR))
 BUILD		:=	build
 OUT			:=	out
-SOURCES		:=	source source/ui
+SOURCES		:=	source source/core source/ui
 DATA		:=	data
 INCLUDES	:=	include
 
