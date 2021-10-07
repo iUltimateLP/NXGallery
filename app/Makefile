@@ -90,6 +90,7 @@ LIBS	:= -lnx
 LIBDIRS	:= $(PORTLIBS) $(LIBNX)
 
 include $(TOPDIR)/lib/borealis/library/borealis.mk
+include $(TOPDIR)/lib/qrcodegen/qrcodegen.mk
 
 #---------------------------------------------------------------------------------
 # no real need to edit anything past this point unless you need to add additional
