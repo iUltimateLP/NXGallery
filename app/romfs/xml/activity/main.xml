@@ -1,8 +1,15 @@
+<!--
+    NXGallery for Nintendo Switch
+    Made with love by Jonathan Verbeek (jverbeek.de)
+-->
+
+<!-- Main app frame -->
 <brls:AppletFrame
     title="@i18n/nxgallery/title"
     iconInterpolation="linear"
     icon="@res/img/NXGallery_transparent.png" >
 
+    <!-- Main content box -->
     <brls:Box
         width="100%"
         height="100%"
@@ -12,6 +19,7 @@
         paddingLeft="75"
         paddingRight="75" >
 
+        <!-- QR code -->
         <QrCode
             id="qrcode"
             width="auto"
@@ -19,40 +27,51 @@
             pixelsPerModule="10"
             marginBottom="50" />
 
+        <!-- Container for text under QR code -->
         <brls:Box
             width="100%"
             height="auto"
             axis="column" 
-            justifyContent="center" >
+            justifyContent="center"
+            alignItems="center" >
 
+            <!-- Heading -->
             <brls:Label
                 width="auto"
                 height="auto"
                 text="@i18n/nxgallery/label/heading"
-                fontSize="36" />
+                fontSize="36" 
+                marginBottom="20" />
 
+            <!-- Subtext container -->
             <brls:Box
                 width="auto"
                 height="auto"
                 axis="row"
                 justifyContent="center" >
 
+                <!-- Text before IP -->
                 <brls:Label
                     width="auto"
                     height="auto"
                     text="@i18n/nxgallery/label/sub/a" />
 
+                <!-- IP address container -->
                 <brls:Box
                     width="auto"
                     height="auto"
-                    paddingLeft="5"
+                    paddingLeft="10"
                     paddingTop="5"
                     paddingBottom="5"
+                    paddingRight="0"
+                    marginLeft="5"
+                    marginRight="5"
                     backgroundColor="#000000" 
                     borderColor="#aaaaaa"
                     borderThickness="1"
                     cornerRadius="4" >
 
+                        <!-- IP address -->
                         <brls:Label
                             id="address"
                             width="auto"
@@ -61,6 +80,7 @@
 
                 </brls:Box>
 
+                <!-- Text after IP -->
                 <brls:Label
                     width="auto"
                     height="auto"

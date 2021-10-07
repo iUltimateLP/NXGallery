@@ -135,7 +135,7 @@ int main(int argc, char* argv[])
     webServer->GetAddress(serverAddress);
     printf("Open %s in your web browser\n", serverAddress);
 
-    // Encode the server address URL into the QR code the UI displays
+    // Set up the UI display
     mainActivity->qrCode->setText(std::string(serverAddress));
     mainActivity->address->setText(std::string(serverAddress));
 
