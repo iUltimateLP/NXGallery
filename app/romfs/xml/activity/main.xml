@@ -22,20 +22,51 @@
         <brls:Box
             width="100%"
             height="auto"
-            axis="column" >
-
-            <brls:Label
-                width="100%"
-                height="auto"
-                text="@i18n/nxgallery/label/heading"
-                fontSize="36"
-                horizontalAlign="center" />
+            axis="column" 
+            justifyContent="center" >
 
             <brls:Label
                 width="auto"
                 height="auto"
-                horizontalAlign="center"
-                text="@i18n/nxgallery/label/sub/a" />
+                text="@i18n/nxgallery/label/heading"
+                fontSize="36" />
+
+            <brls:Box
+                width="auto"
+                height="auto"
+                axis="row"
+                justifyContent="center" >
+
+                <brls:Label
+                    width="auto"
+                    height="auto"
+                    text="@i18n/nxgallery/label/sub/a" />
+
+                <brls:Box
+                    width="auto"
+                    height="auto"
+                    paddingLeft="5"
+                    paddingTop="5"
+                    paddingBottom="5"
+                    backgroundColor="#000000" 
+                    borderColor="#aaaaaa"
+                    borderThickness="1"
+                    cornerRadius="4" >
+
+                        <brls:Label
+                            id="address"
+                            width="auto"
+                            height="auto"
+                            textColor="#ffffff" />
+
+                </brls:Box>
+
+                <brls:Label
+                    width="auto"
+                    height="auto"
+                    text="@i18n/nxgallery/label/sub/b" />
+
+            </brls:Box>
 
         </brls:Box>
 

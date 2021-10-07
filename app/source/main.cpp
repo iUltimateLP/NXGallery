@@ -92,12 +92,18 @@ bool initBorealis()
     // Have the application register an action on every activity that will quit
     brls::Application::setGlobalQuit(true);
 
+    // Register custom fonts
+    brls::Application::loadFontFromFile("mono", "romfs:/robotomono/RobotoMono-Regular.ttf");
+
     // Register custom components
     brls::Application::registerXMLView("QrCode", nxgallery::ui::QrCode::create);
 
     // Create a new main activity and push it to the stack
     mainActivity = new nxgallery::ui::MainActivity();
     brls::Application::pushActivity(mainActivity);
+
+    // Set the label's font to be mono
+    mainActivity->address->setFont(brls::Application::getFont("mono"));
 
     return true;
 }
@@ -131,6 +137,7 @@ int main(int argc, char* argv[])
 
     // Encode the server address URL into the QR code the UI displays
     mainActivity->qrCode->setText(std::string(serverAddress));
+    mainActivity->address->setText(std::string(serverAddress));
 
     // Get all paths where Nintendo stores the album content and add these
     // as mount points for the web server

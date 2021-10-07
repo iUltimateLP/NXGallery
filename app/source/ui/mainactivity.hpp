@@ -35,7 +35,8 @@ namespace nxgallery::ui
         // Inflates the XML resource
         CONTENT_FROM_XML_RES("activity/main.xml");
 
-        // Binds the QRcode element to this->qrCode so it can be accessed from code
+        // Binds the elements to this so they can be accessed from code
         BRLS_BIND(nxgallery::ui::QrCode, qrCode, "qrcode");
+        BRLS_BIND(brls::Label, address, "address");
     };
 }
