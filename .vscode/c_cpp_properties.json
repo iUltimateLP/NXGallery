@@ -14,7 +14,9 @@
                 "C:/devkitPro/devkitA64/lib/gcc/aarch64-none-elf/9.2.0/include/**",
                 "C:/devkitPro/libnx/include/**",
                 "C:/devkitPro/portlibs/switch/include/**",
-                "${workspaceFolder}/app/lib/borealis/**"
+                "${workspaceFolder}/app/lib/borealis/**",
+                "${workspaceFolder}/app/lib/qrcodegen/**",
+                "${workspaceFolder}/app/lib/json/**"
             ],
             "defines": [
                 "SWITCH",

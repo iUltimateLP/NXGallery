@@ -1,75 +1,44 @@
-<brls:TabFrame
-    title="@i18n/demo/title"
+<brls:AppletFrame
+    title="@i18n/nxgallery/title"
     iconInterpolation="linear"
-    icon="@res/img/borealis_96.png">
+    icon="@res/img/NXGallery_transparent.png" >
 
-    <!-- Static tab with inline XML -->
-    <brls:Tab label="@i18n/demo/tabs/about" >
+    <brls:Box
+        width="100%"
+        height="100%"
+        axis="column"
+        paddingTop="50"
+        paddingBottom="50"
+        paddingLeft="75"
+        paddingRight="75" >
+
+        <QrCode
+            id="qrcode"
+            width="auto"
+            height="33%"
+            pixelsPerModule="10"
+            marginBottom="50" />
 
         <brls:Box
-            width="auto"
+            width="100%"
             height="auto"
-            axis="column"
-            paddingTop="@style/about/padding_top_bottom"
-            paddingBottom="@style/about/padding_top_bottom"
-            paddingLeft="@style/about/padding_sides"
-            paddingRight="@style/about/padding_sides" >
+            axis="column" >
 
-            <brls:Image
-                width="auto"
-                height="33%"
-                image="@res/img/borealis_256.png"
-                marginBottom="@style/about/description_margin"/>
+            <brls:Label
+                width="100%"
+                height="auto"
+                text="@i18n/nxgallery/label/heading"
+                fontSize="36"
+                horizontalAlign="center" />
 
-            <brls:Box
+            <brls:Label
                 width="auto"
                 height="auto"
-                axis="row"
-                marginBottom="@style/about/description_margin">
-
-                <brls:Label
-                    width="40%"
-                    height="auto"
-                    text="@i18n/demo/about/title"
-                    fontSize="36"
-                    horizontalAlign="right"
-                    verticalAlign="top" />
-
-                <brls:Label
-                    width="auto"
-                    height="auto"
-                    text="@i18n/demo/about/description"
-                    marginLeft="@style/about/description_margin" />
-
-            </brls:Box>
-
-            <brls:Box
-                width="auto"
-                height="auto"
-                axis="column"
-                alignItems="center"
-                justifyContent="spaceEvenly"
-                grow="1.0" >
-
-                <brls:Label
-                    width="auto"
-                    height="auto"
-                    text="@i18n/demo/about/github" />
-
-                <brls:Label
-                    width="auto"
-                    height="auto"
-                    text="@i18n/demo/about/licence" />
-
-                <brls:Label
-                    width="auto"
-                    height="auto"
-                    text="@i18n/demo/about/logo_credit" />
-
-            </brls:Box>
+                horizontalAlign="center"
+                text="@i18n/nxgallery/label/sub/a" />
 
         </brls:Box>
 
-    </brls:Tab>
+    </brls:Box>
 
-</brls:TabFrame>
+</brls:AppletFrame>

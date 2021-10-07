@@ -1,0 +1,11 @@
+{
+    "title": "NXGallery",
+
+    "label": {
+        "heading": "Scan the QR Code",
+        "sub": {
+            "a": "or open",
+            "b": "in your browser."
+        }
+    }
+}

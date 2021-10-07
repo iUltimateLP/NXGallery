@@ -72,7 +72,7 @@ void WebServer::GetAddress(char* buffer)
 {
     static struct sockaddr_in serv_addr;
     serv_addr.sin_addr.s_addr = gethostid();
-    sprintf(buffer, "%s:%d", inet_ntoa(serv_addr.sin_addr), port);
+    sprintf(buffer, "http://%s:%d/", inet_ntoa(serv_addr.sin_addr), port);
 }
 
 void WebServer::AddMountPoint(const char* path)
