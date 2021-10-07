@@ -28,38 +28,37 @@
 #pragma once
 
 #include <borealis.hpp>
-#include <switch.h>
 
 namespace nxgallery::ui
 {
-    // This is a Borealis UI element which renders a QR code encoding the given text
-    class QrCode : public brls::Box
+    // The same as the applet frame from borealis, but more customized towards NXGallery
+    class MainFrame : public brls::Box
     {
     public:
-        // Constructors
-        QrCode();
+        MainFrame();
 
-        // Borealis view creator
+        void handleXMLElement(tinyxml2::XMLElement* element) override;
+
+        /**
+         * Sets the content view for that AppletFrame.
+         * Will be placed between header and footer and expanded with grow factor
+         * and width / height to AUTO.
+         */
+        void setContentView(brls::View* view);
+
+        void setTitle(std::string title);
+
+        void setIconFromRes(std::string name);
+        void setIconFromFile(std::string path);
+
         static brls::View* create();
 
-        // Sets the text to encode and forces the image to generate a new QR code
-        void setText(std::string _text);
-
     private:
-        // Generates a QR code with the given size and returns the pointer to the image data
-        unsigned char* generateQRCode(int* outWidthHeight);
+        BRLS_BIND(brls::Label, title, "brls/applet_frame/title_label");
+        BRLS_BIND(brls::Image, icon, "brls/applet_frame/title_icon");
+        BRLS_BIND(brls::Label, version, "version");
 
-    private:
-        // Image component defined in the XML
-        BRLS_BIND(brls::Image, image, "image");
-
-        // Worker thread for generating the QR code
-        Thread worker;
-
-        // The text to encode in the QR code
-        std::string text = "";
-
-        // The size (in pixels) per module in the QR code
-        int pxPerModule = 10;
+    protected:
+        brls::View* contentView = nullptr;
     };
 }

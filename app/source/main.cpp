@@ -1,6 +1,28 @@
 /*
     NXGallery for Nintendo Switch
     Made with love by Jonathan Verbeek (jverbeek.de)
+
+    MIT License
+
+    Copyright (c) 2020-2021 Jonathan Verbeek
+
+    Permission is hereby granted, free of charge, to any person obtaining a copy
+    of this software and associated documentation files (the "Software"), to deal
+    in the Software without restriction, including without limitation the rights
+    to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+    copies of the Software, and to permit persons to whom the Software is
+    furnished to do so, subject to the following conditions:
+
+    The above copyright notice and this permission notice shall be included in all
+    copies or substantial portions of the Software.
+
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+    OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+    SOFTWARE.
 */
 
 // Include the most common headers from the C standard library
@@ -17,6 +39,7 @@
 #include "core/albumwrapper.hpp"
 
 // Include NXGallery UI
+#include "ui/mainframe.hpp"
 #include "ui/qrcode.hpp"
 #include "ui/mainactivity.hpp"
 
@@ -25,6 +48,8 @@
 
 // The main activity Borealis runs
 nxgallery::ui::MainActivity* mainActivity = nullptr;
+
+using namespace brls::literals; // for _i18n
 
 // Loads up and initializes all libnx modules needed
 void initSwitchModules()
@@ -95,13 +120,14 @@ bool initBorealis()
     brls::Application::loadFontFromFile("mono", "romfs:/robotomono/RobotoMono-Regular.ttf");
 
     // Register custom theme variables
-    brls::getLightTheme().addColor("qrcode/foreground", nvgRGB(0, 0, 0));
-    brls::getLightTheme().addColor("qrcode/background", brls::Application::getTheme().getColor("brls/background"));
-    brls::getDarkTheme().addColor("qrcode/foreground", nvgRGB(255, 255, 255));
-    brls::getDarkTheme().addColor("qrcode/background", brls::Application::getTheme().getColor("brls/background"));
+    brls::getLightTheme().addColor("nxgallery/qrcode/foreground", nvgRGB(0, 0, 0));
+    brls::getLightTheme().addColor("nxgallery/qrcode/background", brls::Application::getTheme().getColor("brls/background"));
+    brls::getDarkTheme().addColor("nxgallery/qrcode/foreground", nvgRGB(255, 255, 255));
+    brls::getDarkTheme().addColor("nxgallery/qrcode/background", brls::Application::getTheme().getColor("brls/background"));
 
     // Register custom components
-    brls::Application::registerXMLView("QrCode", nxgallery::ui::QrCode::create);
+    brls::Application::registerXMLView("nxgallery:MainFrame", nxgallery::ui::MainFrame::create);
+    brls::Application::registerXMLView("nxgallery:QrCode", nxgallery::ui::QrCode::create);
 
     // Create a new main activity and push it to the stack
     mainActivity = new nxgallery::ui::MainActivity();
@@ -134,11 +160,12 @@ int main(int argc, char* argv[])
     // static web assets and start it
     nxgallery::core::WebServer* webServer = new nxgallery::core::WebServer(SERVER_PORT);
     webServer->AddMountPoint("romfs:/www");
+
     webServer->Start();
 
+    // Get the address the server is listening to
     char serverAddress[32];
     webServer->GetAddress(serverAddress);
-    printf("Open %s in your web browser\n", serverAddress);
 
     // Set up the UI display
     mainActivity->qrCode->setText(std::string(serverAddress));

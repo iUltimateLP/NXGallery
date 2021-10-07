@@ -7,5 +7,9 @@
             "a": "or open",
             "b": "in your browser."
         }
+    },
+
+    "footer": {
+        "credits": "Made with \u2665 by Jonathan Verbeek"
     }
 }

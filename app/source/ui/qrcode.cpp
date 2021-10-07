@@ -1,6 +1,28 @@
 /*
     NXGallery for Nintendo Switch
     Made with love by Jonathan Verbeek (jverbeek.de)
+
+    MIT License
+
+    Copyright (c) 2020-2021 Jonathan Verbeek
+
+    Permission is hereby granted, free of charge, to any person obtaining a copy
+    of this software and associated documentation files (the "Software"), to deal
+    in the Software without restriction, including without limitation the rights
+    to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+    copies of the Software, and to permit persons to whom the Software is
+    furnished to do so, subject to the following conditions:
+
+    The above copyright notice and this permission notice shall be included in all
+    copies or substantial portions of the Software.
+
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+    OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+    SOFTWARE.
 */
 
 #include "qrcode.hpp"
@@ -37,9 +59,6 @@ QrCode::QrCode()
     this->registerFloatXMLAttribute("pixelsPerModule", [=](float value) {
         this->pxPerModule = (int)value;
     });
-
-    // Default text
-    this->setText("change me!");
 }
 
 brls::View* QrCode::create()
@@ -68,8 +87,8 @@ unsigned char* QrCode::generateQRCode(int* outWidthHeight)
     const qrcodegen::QrCode qrCode = qrcodegen::QrCode::encodeText(this->text.c_str(), errorCorrection);
 
     // Get the colors from the theme in which we will paint this QR code
-    NVGcolor foregroundColor = brls::Application::getTheme().getColor("qrcode/foreground");
-    NVGcolor backgroundColor = brls::Application::getTheme().getColor("qrcode/background");
+    NVGcolor foregroundColor = brls::Application::getTheme().getColor("nxgallery/qrcode/foreground");
+    NVGcolor backgroundColor = brls::Application::getTheme().getColor("nxgallery/qrcode/background");
 
     // Allocate a buffer for the image
     int numPixelsPerLine = qrCode.getSize() * pxPerModule;
