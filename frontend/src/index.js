@@ -125,13 +125,14 @@ class GalleryItem extends React.Component {
         // Decide whether to show a video or an image element
         let viewElement;
         let viewElementBig;
-        const url = getBackendURL() + this.state.item.path;
+        const previewURL = getBackendURL() + "/thumbnail?id=" + this.state.item.id;
+        const fullURL = getBackendURL() + "/file?id=" + this.state.item.id;
         if (this.state.isVideo) {
-            viewElement = <video src={url} controls preload={"none"} poster={"assets/img/video_placeholder.jpg"}></video>
-            viewElementBig = <video src={url} controls preload={"none"} className={"gallery-content-big"} poster={"assets/img/video_placeholder.jpg"}></video>;
+            viewElement = <video src={fullURL} controls preload={"none"} poster={previewURL}></video>
+            viewElementBig = <video src={fullURL} controls preload={"none"} className={"gallery-content-big"} poster={previewURL}></video>;
         } else {
-            viewElement = <img src={url} poster={"assets/img/video_placeholder.jpg"} alt=""></img>
-            viewElementBig = <a href={url} target="_blank" rel="noreferrer"><img src={url} className={"gallery-content-big"} poster={"assets/img/video_placeholder.jpg"} alt=""></img></a>;
+            viewElement = <img src={previewURL} alt=""></img>
+            viewElementBig = <a href={fullURL} target="_blank" rel="noreferrer"><img src={fullURL} className={"gallery-content-big"} alt=""></img></a>;
         }
 
         return (

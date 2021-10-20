@@ -176,17 +176,9 @@ std::string AlbumWrapper::GetGalleryContent(int page)
     // New json object which will hold the total response
     json finalObject;
 
-    // Combine both NAND and SD caches into one vector for iterating
-    std::vector<CapsAlbumEntry> allAlbumContent;
-    allAlbumContent.insert(allAlbumContent.end(), nandAlbumContent.begin(), nandAlbumContent.end());
-    allAlbumContent.insert(allAlbumContent.end(), sdAlbumContent.begin(), sdAlbumContent.end());
-
-    // Reverse the content so we have newest items first
-    std::reverse(allAlbumContent.begin(), allAlbumContent.end());
-
     // Fill in some data for the frontend
     // Calculate the max amount of pages we will have
-    finalObject["pages"] = (int)ceil((double)allAlbumContent.size() / (double)CONTENT_PER_PAGE);
+    finalObject["pages"] = (int)ceil((double)cachedAlbumContent.size() / (double)CONTENT_PER_PAGE);
 
     // Get the console's color theme so the frontend can fit
     ColorSetId colorTheme;
@@ -204,14 +196,14 @@ std::string AlbumWrapper::GetGalleryContent(int page)
     int pageMax = page * CONTENT_PER_PAGE;
 
     // Make sure to stay in bounds
-    if (pageMax >= allAlbumContent.size())
-        pageMax = allAlbumContent.size();
+    if (pageMax >= cachedAlbumContent.size())
+        pageMax = cachedAlbumContent.size();
 
     // Iterate over the current range for the page
     for (int i = pageMin; i < pageMax; i++)
     {
         // Get the entry off the album content cache
-        CapsAlbumEntry albumEntry = allAlbumContent[i];
+        CapsAlbumEntry albumEntry = cachedAlbumContent[i];
 
         // Screenshot files are always named after the following scheme:
         // yyyy/mm/dd/yyyymmddHHMMSSii-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx.jpg
@@ -222,10 +214,11 @@ std::string AlbumWrapper::GetGalleryContent(int page)
 
         // Figure out if this album entry is stored on the NAND of SD by looking at the
         // vector this element is in
-        bool isStoredInNand = std::find(nandAlbumContent.begin(), nandAlbumContent.end(), albumEntry) != nandAlbumContent.end();
+        bool isStoredInNand = albumEntry.file_id.storage != CapsAlbumStorage_Sd;
 
         // The JSON object for this entry of the album
         json jsonObj;
+        jsonObj["id"] = i;
         jsonObj["storedAt"] = isStoredInNand ? "nand" : "sd";
 
         // Retrieve the control.nacp data for the game where the current album entry was taken
@@ -243,6 +236,14 @@ std::string AlbumWrapper::GetGalleryContent(int page)
             {
                 jsonObj["game"] = nacpLangEntry->name;
             }
+        }
+
+        // Retrieve the file size of the file
+        u64 fileSize;
+        Result getFileSizeResult = capsaGetAlbumFileSize(&albumEntry.file_id, &fileSize);
+        if (R_SUCCEEDED(getFileSizeResult))
+        {
+            jsonObj["fileSize"] = fileSize;
         }
 
         // If the above didn't work, it's probably not a game where this album entry was created
@@ -373,13 +374,65 @@ std::string AlbumWrapper::GetGalleryContent(int page)
     return outJSON;
 }
 
+CapsAlbumFileContents AlbumWrapper::GetAlbumEntryType(int id)
+{
+    return (CapsAlbumFileContents)cachedAlbumContent[id].file_id.content;
+}
+
+bool AlbumWrapper::GetFileThumbnail(int id, void* outBuffer, u64 bufferSize, u64* outActualImageSize)
+{
+    // Make sure that ID exists
+    if (id < 0 || id > cachedAlbumContent.size())
+        return false;
+
+    // Get the content with that ID
+    CapsAlbumEntry entry = cachedAlbumContent[id];
+
+    // Load the thumbnail
+    Result result = capsaLoadAlbumFileThumbnail(&entry.file_id, outActualImageSize, outBuffer, bufferSize);
+    if (R_SUCCEEDED(result))
+    {
+        return true;
+    }
+    else
+    {
+        printf("Failed to get thumbnail for file %d: %d-%d\n", id, R_MODULE(result), R_DESCRIPTION(result));
+        return false;
+    }
+}
+
+bool AlbumWrapper::GetFileContent(int id, void* outBuffer, u64 bufferSize, u64* outActualFileSize)
+{
+    // Make sure that ID exists
+    if (id < 0 || id > cachedAlbumContent.size())
+        return false;
+
+    // Get the content with that ID
+    CapsAlbumEntry entry = cachedAlbumContent[id];
+
+    // Load the file content
+    Result result = capsaLoadAlbumFile(&entry.file_id, outActualFileSize, outBuffer, bufferSize);
+    if (R_SUCCEEDED(result))
+    {
+        return true;
+    }
+    else
+    {
+        printf("Failed to get file content for file %d: %d-%d\n", id, R_MODULE(result), R_DESCRIPTION(result));
+        return false; 
+    }
+}
+
 void AlbumWrapper::CacheGalleryContent()
 {  
     // Cache NAND album
-    CacheAlbum(CapsAlbumStorage_Nand, nandAlbumContent);
+    CacheAlbum(CapsAlbumStorage_Nand, cachedAlbumContent);
 
     // Cache SD album
-    CacheAlbum(CapsAlbumStorage_Sd, sdAlbumContent);
+    CacheAlbum(CapsAlbumStorage_Sd, cachedAlbumContent);
+
+    // Reverse the album entries so newest are first
+    std::reverse(cachedAlbumContent.begin(), cachedAlbumContent.end());
 }
 
 void AlbumWrapper::CacheAlbum(CapsAlbumStorage location, std::vector<CapsAlbumEntry>& outCache)

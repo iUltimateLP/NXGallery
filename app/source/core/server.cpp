@@ -189,10 +189,13 @@ void WebServer::ServeRequest(int in, int out, std::vector<const char*> mountPoin
     char path[256];
 
     // Will hold the file descriptor of the file which was requested (e.g. a .html file)
-    int fileToServe;
+    int fileToServe = 0;
 
     // For the /gallery endpoint, this holds the page argument
     int galleryPage = 0;
+
+    // For the file endpoint, this holds the requested file ID
+    int fileId = 0;
 
     // While there is data to receive, receive it
     // NOTE: recv() is a blocking call, see here: http://man7.org/linux/man-pages/man2/recv.2.html
@@ -315,6 +318,77 @@ void WebServer::ServeRequest(int in, int out, std::vector<const char*> mountPoin
 
                 dataPtr += bytesSent;
                 dataSize -= bytesSent;
+            }
+        }
+        // Endpoint to retrieve the thumbnail of a picture
+        else if (sscanf(url, "/thumbnail?id=%d", &fileId))
+        {
+            // First, send a 200 OK back
+            sprintf(buffer, "HTTP/1.0 200 OK\nContent-Type: image/jpeg\nAccess-Control-Allow-Origin: *\n\n");
+            send(out, buffer, strlen(buffer), 0);
+
+            // Get the thumbnail data
+            int imageBufferSize = 64 * 1024; // 64kb is enough for a thumbnail
+            u64 actualImageBufferSize = 0; // The actual size is smaller than the workbuffer we allocated, so only send what we actually use
+            char* imageBuffer = (char*)malloc(imageBufferSize);
+            if (nxgallery::core::AlbumWrapper::Get()->GetFileThumbnail(fileId, imageBuffer, imageBufferSize, &actualImageBufferSize))
+            {
+                // Send raw JPEG data
+                int bytesSent = 0;
+
+                while (actualImageBufferSize > 0)
+                {
+                    bytesSent = send(out, imageBuffer, actualImageBufferSize, 0);
+                    if (bytesSent < 0)
+                        break;
+
+                    imageBuffer += bytesSent;
+                    actualImageBufferSize -= bytesSent;
+                }
+            }
+            else
+            {
+                // Send a 400 OK back
+                sprintf(buffer, "HTTP/1.0 500 Invalid content ID\nAccess-Control-Allow-Origin: *\n\n");
+                send(out, buffer, strlen(buffer), 0);
+            }
+        }
+        // Endpoint to retrieve the full content of a image/video
+        else if (sscanf(url, "/file?id=%d", &fileId))
+        {
+            // Get the media first to check what type it is
+            CapsAlbumFileContents fileType = nxgallery::core::AlbumWrapper::Get()->GetAlbumEntryType(fileId);
+            bool isVideo = (fileType == CapsAlbumFileContents_Movie || fileType == CapsAlbumFileContents_ExtraMovie);
+
+            // First, send a 200 OK back
+            std::string contentType = isVideo ? "video/mp4" : "image/jpeg";
+            sprintf(buffer, "HTTP/1.0 200 OK\nContent-Type: %s\nAccess-Control-Allow-Origin: *\n\n", contentType.c_str());
+            send(out, buffer, strlen(buffer), 0);
+
+            // Get the file data
+            int fileBufferSize = isVideo ? (32 * 1024 * 1024) : (512 * 1024); // For screenshots, a 512kb buffer is okay, for videos, a 32mb buffer is used
+            u64 actualFileBufferSize = 0; // The actual size is smaller than the workbuffer we allocated, so only send what we actually use
+            char* fileBuffer = (char*)malloc(fileBufferSize);
+            if (nxgallery::core::AlbumWrapper::Get()->GetFileContent(fileId, fileBuffer, fileBufferSize, &actualFileBufferSize))
+            {
+                // Send raw file data
+                int bytesSent = 0;
+
+                while (actualFileBufferSize > 0)
+                {
+                    bytesSent = send(out, fileBuffer, actualFileBufferSize, 0);
+                    if (bytesSent < 0)
+                        break;
+
+                    fileBuffer += bytesSent;
+                    actualFileBufferSize -= bytesSent;
+                }
+            }
+            else
+            {
+                // Send a 400 OK back
+                sprintf(buffer, "HTTP/1.0 500 Invalid content ID\nAccess-Control-Allow-Origin: *\n\n");
+                send(out, buffer, strlen(buffer), 0);
             }
         }
         // No file, and no endpoint will result in a 404

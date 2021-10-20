@@ -74,6 +74,15 @@ namespace nxgallery::core
         // Contains a JSON-stringified array of gallery content
         std::string GetGalleryContent(int page);
 
+        // Returns the album entry for a given ID (useful for querying type)
+        CapsAlbumFileContents GetAlbumEntryType(int id);
+
+        // Returns the raw file content of a file's thumbnail (JPEG)
+        bool GetFileThumbnail(int id, void* outBuffer, u64 bufferSize, u64* outActualImageSize);
+
+        // Returns the raw file content of a file's main content file (JPEG/mp4)
+        bool GetFileContent(int id, void* outBuffer, u64 bufferSize, u64* outActualFileSize);
+
     private:
         // Cache all gallery images upon startup and store them so we won't have
         // to look up the gallery content everytime a request happens
@@ -93,8 +102,7 @@ namespace nxgallery::core
         HomebrewInstallationType installationType;
 
         // Holds all album content in cache
-        std::vector<CapsAlbumEntry> nandAlbumContent;
-        std::vector<CapsAlbumEntry> sdAlbumContent;
+        std::vector<CapsAlbumEntry> cachedAlbumContent;
 
         // Singleton instance of the AlbumWrapper
         static AlbumWrapper* singleton;
