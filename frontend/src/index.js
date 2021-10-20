@@ -30,11 +30,11 @@ import {
 } from "@material-ui/core";
 import { Pagination } from "@material-ui/lab";
 
-// Toggle this flag when in dev mode (in that case it'll connect to the DEV_IP instead of trying localhost)
-// Useful for the web development!
-const DEV_MODE = false;
+// Set the IP of your switch so it can connect in dev mode
 const DEV_IP = "http://192.168.178.46:1234";
 const getBackendURL = () => {
+    const DEV_MODE = process.env.NODE_ENV == "development";
+    console.log("Dev mode: " + DEV_MODE);
     return DEV_MODE ? DEV_IP : "";
 };
 

@@ -3,6 +3,9 @@
 
 @: build
 
+dev:
+	npm start
+
 build: clean
 	npm run build
 	cp -r -f build/* ../app/romfs/www/
