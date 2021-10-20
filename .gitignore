@@ -4,3 +4,7 @@ out/
 *.elf
 *.nacp
 *.nro
+
+# Frontend
+frontend/node_modules/
+frontend/build/

@@ -24,6 +24,10 @@ app:
 	@$(MAKE) -j -C app
 	@$(MAKE) stageApp
 
+#	Build the frontend
+frontend:
+	@$(MAKE) -C frontend
+
 #	Stage the release into one single folder which can be copied on the SD card
 stageApp:
 	@mkdir -p out/switch/

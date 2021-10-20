@@ -296,7 +296,7 @@ void WebServer::ServeRequest(int in, int out, std::vector<const char*> mountPoin
         else if (sscanf(url, "/gallery?page=%d", &galleryPage))
         {
             // First, send a 200 OK back
-            sprintf(buffer, "HTTP/1.0 200 OK\nContent-Type: application/json\n\n");
+            sprintf(buffer, "HTTP/1.0 200 OK\nContent-Type: application/json\nAccess-Control-Allow-Origin: *\n\n");
             send(out, buffer, strlen(buffer), 0);
 
             // Ask the album wrapper to process the request
