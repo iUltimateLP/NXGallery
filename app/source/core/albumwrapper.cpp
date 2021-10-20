@@ -31,6 +31,7 @@
 #include <errno.h>
 #include <inttypes.h>
 #include <dirent.h>
+#include <filesystem>
 using namespace nxgallery::core;
 using json = nlohmann::json;
 
@@ -324,7 +325,7 @@ std::string AlbumWrapper::GetGalleryContent(int page)
         
         // Read through the folder until there is no more file to be read
         struct dirent* dirp;
-        std::string foundFileName;
+        std::filesystem::path foundFile;
         while ((dirp = readdir(imgDir)) != NULL)
         {
             // Get the name of the current file
@@ -342,7 +343,7 @@ std::string AlbumWrapper::GetGalleryContent(int page)
                     albumEntry.file_id.datetime.day,
                     fileName.c_str());
 
-                foundFileName = fileName;
+                foundFile = std::filesystem::path(fileName);
                 jsonObj["path"] = imgPath;
             }
         }
@@ -350,12 +351,18 @@ std::string AlbumWrapper::GetGalleryContent(int page)
         // Close the directory again
         closedir(imgDir);
 
-        // Determine the type by looking at the file extension
-        bool isVideo = foundFileName.compare(foundFileName.length() - 3, 3, "mp4") == 0;
-        jsonObj["type"] = isVideo ? "video" : "screenshot";
+        // Only add if the file was really found
+        if (foundFile.string().length() > 0)
+        {
+            // Determine the type by looking at the file extension
+            if (foundFile.extension() == ".mp4")
+                jsonObj["type"] = "video";
+            else
+                jsonObj["type"] = "screenshot";
 
-        // Push this json object to the array
-        jsonArray.push_back(jsonObj);
+            // Push this json object to the array
+            jsonArray.push_back(jsonObj);
+        }
     }
 
     finalObject["gallery"] = jsonArray;
