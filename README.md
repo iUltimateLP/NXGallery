@@ -16,15 +16,14 @@
 # Screenshots
 <table>
   <tr align="center">
-      <td><img src="https://i.imgur.com/VBm4jNg.png"></img></td>
-      <td><img src="https://i.imgur.com/Ie1EG9P.png"></img></td>
+      <td colspan="2"><img src="https://i.imgur.com/L9xFdht.png"></img></td>
   </tr>
   <tr align="center">
-      <td><img src="https://i.imgur.com/Uw6O5SI.png"></img></td>
-      <td><img src="https://i.imgur.com/srVhPpm.png"></img></td>
+      <td><img src="https://i.imgur.com/BkNVZOd.png"></img></td>
+      <td><img src="https://i.imgur.com/xuTYCvi.png"></img></td>
   </tr>
   <tr align="center">
-    <td colspan="2"><img src="https://i.imgur.com/iVrEFRk.jpg"></img></td>
+    <td colspan="2"><img src="https://i.imgur.com/KfVBzmm.png"></img></td>
   </tr>
 </table>
 
