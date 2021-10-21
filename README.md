@@ -30,7 +30,7 @@
 # Installing
 Download the [latest release](https://github.com/iUltimateLP/NXGallery/releases) and drag the `NXGallery.nro` file to the `switch/` folder of your SD card. You can also drag the file to your Switch via [ftpd](https://github.com/mtheall/ftpd). 
 
-NXGallery was tested working on [Atmosphère](https://github.com/Atmosphere-NX/Atmosphere) 0.12.0 and firmware version 10.0.2, but should work above/below, if you know what you're doing.
+NXGallery was tested working on [Atmosphère](https://github.com/Atmosphere-NX/Atmosphere) 1.1.1 and firmware version 13.0.0, but should work above/below, if you know what you're doing.
 
 # Building
 Compiling this project requires a [Nintendo Switch Homebrew dev environment](https://switchbrew.org/wiki/Setting_up_Development_Environment) to be installed. Then, install the following dependencies (required for [borealis](https://github.com/natinusala/borealis)):
