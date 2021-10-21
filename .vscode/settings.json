@@ -53,6 +53,17 @@
         "netdb.h": "c",
         "ifaddrs.h": "c",
         "socket.h": "c",
-        "chrono": "cpp"
+        "chrono": "cpp",
+        "codecvt": "cpp",
+        "compare": "cpp",
+        "concepts": "cpp",
+        "ctime": "cpp",
+        "list": "cpp",
+        "set": "cpp",
+        "ratio": "cpp",
+        "iomanip": "cpp",
+        "numbers": "cpp",
+        "regex": "cpp",
+        "variant": "cpp"
     }
 }

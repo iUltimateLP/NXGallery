@@ -1,0 +1,111 @@
+/*
+    NXGallery for Nintendo Switch
+    Made with love by Jonathan Verbeek (jverbeek.de)
+*/
+
+.fa-github {
+    font-size: 16pt;
+}
+
+.fa-github.light {
+    color: #333;
+}
+
+.fa-github.dark {
+    color: #eee;
+}
+
+.grid-cell {
+    border-radius: 0;
+    margin: 3px;
+}
+
+@keyframes frameGlow {
+    0% {
+        border: 3px solid #50f4dc;
+        margin: 0;
+    }
+    50% {
+        border: 3px solid #04c7c3;
+        margin: 0;
+    }
+    100% {
+        border: 3px solid #50f4dc;
+        margin: 0;
+    }
+}
+
+.grid-cell:hover {
+    animation-name: frameGlow;
+    animation-duration: 1s;
+    animation-iteration-count: infinite;
+    animation-timing-function: ease-in-out;
+}
+
+.grid-cell>img, .grid-cell>video {
+    background-repeat: no-repeat;
+    width: 100%;
+    height: 100%;
+    vertical-align: middle;
+}
+
+.gallery-content-big {
+    width: 100%;
+    cursor: pointer;
+    border-radius: 4px;
+}
+
+.gallery-content-bar {
+    float: right;
+}
+
+.gallery-content-bar>a[href] {
+    text-decoration: none;
+}
+
+.fa-download {
+    padding-right: 8px;
+}
+
+.footer {
+    padding-bottom: 8px;
+    width: calc(100% - 8px) !important;
+}
+
+@keyframes herzKlopfen {
+    0% {
+        transform: scale(1) translateY(7px);
+    }
+    25% {
+        transform: scale(1.1) translateY(7px);
+    }
+    50% {
+        transform: scale(1) translateY(7px);
+    }
+    75% {
+        transform: scale(1.1) translateY(7px);
+    }
+    100% {
+        transform: scale(1) translateY(7px);
+    }
+}
+
+.heart {
+    animation: none;
+    transition: 0.1s linear color;
+    color: #444;
+    transform: translateY(7px);
+    margin-left: 4px;
+    margin-right: 4px;
+}
+
+.heart:hover {
+    animation-name: herzKlopfen;
+    animation-duration: 1s;
+    animation-iteration-count: infinite;
+    color: #c72c2c;
+}
+
+.pagination > ul{
+    justify-content: center;
+}

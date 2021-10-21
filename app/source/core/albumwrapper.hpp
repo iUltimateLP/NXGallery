@@ -108,8 +108,14 @@ namespace nxgallery::core
         // Contains a JSON-stringified array of gallery content
         std::string GetGalleryContent(int page);
 
+        // Returns the readable name of the given title ID by looking at the nacp or at system titles
+        std::string GetTitleName(u64 titleId);
+
         // Returns the album entry for a given ID (useful for querying type)
         CapsAlbumFileContents GetAlbumEntryType(int id);
+
+        // Returns the filename for an album entry so the frontend can download under that filename
+        std::string GetAlbumEntryFilename(int id);
 
         // Returns the raw file content of a file's thumbnail (JPEG)
         bool GetFileThumbnail(int id, void* outBuffer, u64 bufferSize, u64* outActualImageSize);

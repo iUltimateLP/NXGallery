@@ -367,7 +367,8 @@ void WebServer::ServeRequest(int in, int out, std::vector<const char*> mountPoin
 
             // Send a 200 OK back with the correct content type
             std::string contentType = isVideo ? "video/mp4" : "image/jpeg";
-            sprintf(buffer, "HTTP/1.0 200 OK\nContent-Type: %s\nAccess-Control-Allow-Origin: *\n\n", contentType.c_str());
+            std::string downloadFileName = nxgallery::core::AlbumWrapper::Get()->GetAlbumEntryFilename(fileId);
+            sprintf(buffer, "HTTP/1.0 200 OK\nContent-Type: %s\nAccess-Control-Allow-Origin: *\nContent-Disposition: filename=\"%s\"\n\n", contentType.c_str(), downloadFileName.c_str());
             send(out, buffer, strlen(buffer), 0);
 
             // Allocate a buffer for the file content

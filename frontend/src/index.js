@@ -110,16 +110,6 @@ class GalleryItem extends React.Component {
         return string;
     }
 
-    getDownloadFilename() {
-        var fileName;
-        var date = this.getDateString();
-        date = date.replace(/[:.\s]/g, "_");
-        var extension = this.state.item.type === "video" ? ".mp4" : ".jpg";
-
-        fileName = this.state.item.game.replace(/\s/g, "_") + "_" + date + extension;
-        return fileName;
-    }
-
     // https://stackoverflow.com/a/20732091/5028730
     humanFileSize(size) {
         var i = Math.floor( Math.log(size) / Math.log(1024) );
@@ -150,7 +140,7 @@ class GalleryItem extends React.Component {
                     <DialogContent>
                         {viewElementBig}
                         <div className={"gallery-content-bar"}>
-                            <a download={this.getDownloadFilename()} href={fullURL}><Button color="primary"><i className={"fas fa-download"}></i> Download</Button></a>
+                            <a download={this.state.item.fileName} href={fullURL}><Button color="primary"><i className={"fas fa-download"}></i> Download</Button></a>
                         </div>
                         <TableContainer>
                             <Table>

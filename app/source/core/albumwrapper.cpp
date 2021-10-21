@@ -32,6 +32,7 @@
 #include <inttypes.h>
 #include <dirent.h>
 #include <filesystem>
+#include <regex>
 using namespace nxgallery::core;
 using json = nlohmann::json;
 
@@ -234,60 +235,8 @@ std::string AlbumWrapper::GetGalleryContent(int page)
         jsonObj["id"] = i;
         jsonObj["storedAt"] = isStoredInNand ? "nand" : "sd";
 
-        // Retrieve the control.nacp data for the game where the current album entry was taken
-        NsApplicationControlData nacpData;
-        u64 nacpDataSize;
-        Result getNACPResult = nsGetApplicationControlData(NsApplicationControlSource_Storage, albumEntry.file_id.application_id, &nacpData, sizeof(nacpData), &nacpDataSize);
-        if (R_SUCCEEDED(getNACPResult))
-        {
-            // Retrieve the language string for the Switch'es desired language
-            NacpLanguageEntry* nacpLangEntry;
-            Result getLangEntryResult = nsGetApplicationDesiredLanguage(&nacpData.nacp, &nacpLangEntry);
-
-            // If it worked, we can grab the nacpLangEntry->name which will hold the name of the title
-            if (R_SUCCEEDED(getLangEntryResult))
-            {
-                jsonObj["game"] = nacpLangEntry->name;
-            }
-        }
-
-        // If the above didn't work, it's probably not a game where this album entry was created
-        if (!jsonObj.contains("game")) 
-        {
-            // A list of all system applets mapped to their title ID
-            // https://switchbrew.org/wiki/Title_list#System_Applets
-            std::map<u64, const char*> systemTitles;
-            systemTitles[0x0100000000001000] = "Home Menu"; // qlaunch
-            systemTitles[0x0100000000001001] = "Auth"; // auth
-            systemTitles[0x0100000000001002] = "Cabinet"; // cabinet
-            systemTitles[0x0100000000001003] = "Controller"; // controller
-            systemTitles[0x0100000000001004] = "DataErase"; // dataErase
-            systemTitles[0x0100000000001005] = "Error"; // error
-            systemTitles[0x0100000000001006] = "Net Connect"; // netConnect
-            systemTitles[0x0100000000001007] = "Player Select"; // playerSelect
-            systemTitles[0x0100000000001008] = "Keyboard"; // swkbd
-            systemTitles[0x0100000000001009] = "Mii Editor"; // miiEdit
-            systemTitles[0x010000000000100A] = "Web Browser"; // web
-            systemTitles[0x010000000000100B] = "eShop"; // shop
-            systemTitles[0x010000000000100C] = "Overlay"; // overlayDisp
-            systemTitles[0x010000000000100D] = "Album"; // photoViewer
-            systemTitles[0x010000000000100F] = "Offline Web Browser"; // offlineWeb
-            systemTitles[0x0100000000001010] = "Share"; // loginShare
-            systemTitles[0x0100000000001011] = "WiFi Web Auth"; // wifiWebAuth
-            systemTitles[0x0100000000001012] = "Starter"; // starter
-            systemTitles[0x0100000000001013] = "My Page"; // myPage
-
-            // If it's one of the above, lookup the name from the map, otherwise it's Unknown
-            if (systemTitles.count(albumEntry.file_id.application_id))
-            {
-                jsonObj["game"] = systemTitles[albumEntry.file_id.application_id];
-            }
-            else
-            {
-                jsonObj["game"] = "Unknown";
-            }
-            
-        }
+        // Retrieve the title's name
+        jsonObj["game"] = GetTitleName(albumEntry.file_id.application_id);
 
         // Retrieve the file size of the file
         u64 fileSize;
@@ -317,6 +266,9 @@ std::string AlbumWrapper::GetGalleryContent(int page)
         {
             jsonObj["type"] = "screenshot";
         }
+
+        // Add the filename for downloading
+        jsonObj["fileName"] = nxgallery::core::AlbumWrapper::Get()->GetAlbumEntryFilename(i);
         
         // Push this json object to the array
         jsonArray.push_back(jsonObj);
@@ -340,9 +292,95 @@ std::string AlbumWrapper::GetGalleryContent(int page)
     return outJSON;
 }
 
+std::string AlbumWrapper::GetTitleName(u64 titleId)
+{
+    // Retrieve the control.nacp data for the game where the current album entry was taken
+    NsApplicationControlData nacpData;
+    u64 nacpDataSize;
+    Result getNACPResult = nsGetApplicationControlData(NsApplicationControlSource_Storage, titleId, &nacpData, sizeof(nacpData), &nacpDataSize);
+    if (R_SUCCEEDED(getNACPResult))
+    {
+        // Retrieve the language string for the Switch'es desired language
+        NacpLanguageEntry* nacpLangEntry;
+        Result getLangEntryResult = nsGetApplicationDesiredLanguage(&nacpData.nacp, &nacpLangEntry);
+
+        // If it worked, we can grab the nacpLangEntry->name which will hold the name of the title
+        if (R_SUCCEEDED(getLangEntryResult))
+        {
+            return nacpLangEntry->name;
+        }
+    }
+
+    // If the above didn't work, it's probably not a game where this album entry was created
+    // A list of all system applets mapped to their title ID
+    // https://switchbrew.org/wiki/Title_list#System_Applets
+    std::map<u64, const char*> systemTitles;
+    systemTitles[0x0100000000001000] = "Home Menu"; // qlaunch
+    systemTitles[0x0100000000001001] = "Auth"; // auth
+    systemTitles[0x0100000000001002] = "Cabinet"; // cabinet
+    systemTitles[0x0100000000001003] = "Controller"; // controller
+    systemTitles[0x0100000000001004] = "DataErase"; // dataErase
+    systemTitles[0x0100000000001005] = "Error"; // error
+    systemTitles[0x0100000000001006] = "Net Connect"; // netConnect
+    systemTitles[0x0100000000001007] = "Player Select"; // playerSelect
+    systemTitles[0x0100000000001008] = "Keyboard"; // swkbd
+    systemTitles[0x0100000000001009] = "Mii Editor"; // miiEdit
+    systemTitles[0x010000000000100A] = "Web Browser"; // web
+    systemTitles[0x010000000000100B] = "eShop"; // shop
+    systemTitles[0x010000000000100C] = "Overlay"; // overlayDisp
+    systemTitles[0x010000000000100D] = "Album"; // photoViewer
+    systemTitles[0x010000000000100F] = "Offline Web Browser"; // offlineWeb
+    systemTitles[0x0100000000001010] = "Share"; // loginShare
+    systemTitles[0x0100000000001011] = "WiFi Web Auth"; // wifiWebAuth
+    systemTitles[0x0100000000001012] = "Starter"; // starter
+    systemTitles[0x0100000000001013] = "My Page"; // myPage
+
+    // If it's one of the above, lookup the name from the map, otherwise it's Unknown
+    if (systemTitles.count(titleId))
+    {
+        return systemTitles[titleId];
+    }
+    else
+    {
+        return "Unknown";
+    }
+}
+
 CapsAlbumFileContents AlbumWrapper::GetAlbumEntryType(int id)
 {
     return (CapsAlbumFileContents)cachedAlbumContent[id].file_id.content;
+}
+
+std::string AlbumWrapper::GetAlbumEntryFilename(int id)
+{
+    // Get the entry from cache
+    CapsAlbumEntry albumEntry = cachedAlbumContent[id];
+
+    // Get the file and check if it's a video
+    CapsAlbumFileContents fileType = GetAlbumEntryType(id);
+    bool isVideo = (fileType == CapsAlbumFileContents_Movie || fileType == CapsAlbumFileContents_ExtraMovie);
+    std::string extension = isVideo ? ".mp4" : ".jpg";
+
+    // Get the title name
+    std::string titleName = GetTitleName(albumEntry.file_id.application_id);
+
+    // Do some regex to replace whitespaces
+    titleName = std::regex_replace(titleName, std::regex("\\s+"), "_");
+
+    // Get the date and form a string
+    char dateStr[32];
+    sprintf(dateStr, "%04u%02u%02u_%02u%02u%02u_%02u",
+        albumEntry.file_id.datetime.year,
+        albumEntry.file_id.datetime.month,
+        albumEntry.file_id.datetime.day,
+        albumEntry.file_id.datetime.hour,
+        albumEntry.file_id.datetime.minute,
+        albumEntry.file_id.datetime.second,
+        albumEntry.file_id.datetime.id);
+
+    std::string finalName = titleName + "_" + dateStr + extension;
+
+    return finalName;
 }
 
 bool AlbumWrapper::GetFileThumbnail(int id, void* outBuffer, u64 bufferSize, u64* outActualImageSize)
@@ -396,25 +434,26 @@ bool AlbumWrapper::GetFileContent(int id, void* outBuffer, u64 bufferSize, u64* 
         // It's a video, use our movie stream reader
         VideoStreamReader* videoStreamReader = new VideoStreamReader(entry);
 
-        /*CURLcode curl_mime_data_cb(curl_mimepart * part, curl_off_t datasize,
-                                     curl_read_callback readfunc, curl_seek_callback seekfunc,
-                                     curl_free_callback freefunc, void * arg);*/
-
+        // Get the stream size. Using that we also know how much bytes we need to read in total
         *outActualFileSize = videoStreamReader->GetStreamSize();
         u64 readLeft = videoStreamReader->GetStreamSize();
+
+        // Read until no bytes are left to read
         size_t bytesRead = 0;
         while (readLeft > 0)
         {
+            // Offset the buffer's pointer accordingly
             char* ptr = ((char*)outBuffer) + bytesRead;
             u64 readResult = videoStreamReader->Read(ptr, videoStreamReader->GetStreamSize());
-            //printf("Read Result %lu StreamSize %lu BytesRead %lu ReadLeft %lu\n", readResult, videoStreamReader->GetStreamSize(), bytesRead, readLeft);
 
             bytesRead += readResult;
             readLeft -= readResult;
         }
 
+        // Finished, delete the stream reader
         delete videoStreamReader;
 
+        // If no bytes are left to read, everything worked fine
         return readLeft <= 0;
     }
 }
