@@ -51,6 +51,46 @@ namespace nxgallery::core
         SD_EmuMMC_Filebased
     };
 
+    // This class is responsible for reading videos as we access them
+    // in a stream-like format through capsa. 
+    // Full credit goes to HookedBehemoth and his ShareNX project :)
+    class VideoStreamReader
+    {
+    public:
+        // Constructor and destructor
+        VideoStreamReader(const CapsAlbumEntry& inAlbumEntry);
+        ~VideoStreamReader();
+
+        // Returns the size of the whole video stream (= size of the video file)
+        u64 GetStreamSize();
+
+        // Reads a number of bytes from the stream. Won't read more data than the internal
+        // workbuffer allows
+        u64 Read(char* outBuffer, u64 numBytes);
+
+    private:
+        // The album entry we're reading video data for
+        CapsAlbumEntry albumEntry;
+
+        // Size of the work buffer
+        u64 workBufferSize = 0x40000;
+
+        // The work buffer
+        unsigned char* workBuffer;
+
+        // Handle for the movie stream, returned by capsaOpenAlbumMovieStream
+        u64 streamHandle = 0;
+
+        // How many bytes have been read until now
+        u64 bytesRead = 0;
+
+        // Size of the stream, returned by capsaGetAlbumMovieStreamSize and cached at start
+        u64 streamSize = 0;
+
+        // Index of the last work buffer
+        u32 lastBufferIndex = -1;
+    };
+
     // This class will help NXGallery with the Switch'es album.
     // It will implement logic from libnx and provide an interface
     // for the server/backend to provide for the frontend.

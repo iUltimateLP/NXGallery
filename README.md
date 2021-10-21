@@ -49,6 +49,8 @@ I've used the following libraries, without this project wouldn't have been possi
  + [Borealis](https://github.com/natinusala/borealis)
  + [QR-Code-generator](https://github.com/nayuki/QR-Code-generator)
 
+Also, special thanks to [HookedBehemoth's ShareNX](https://github.com/HookedBehemoth/ShareNX) project which has helped me out on some rough edges.
+
 # License
 ```
 MIT License

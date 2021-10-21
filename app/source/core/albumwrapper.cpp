@@ -51,6 +51,83 @@ inline bool operator==(CapsAlbumEntry lhs, const CapsAlbumEntry rhs)
         && lhs.file_id.datetime.id == rhs.file_id.datetime.id;
 }
 
+VideoStreamReader::VideoStreamReader(const CapsAlbumEntry& inAlbumEntry)
+    : albumEntry(inAlbumEntry)
+{
+    // Open video stream
+    if (R_FAILED(capsaOpenAlbumMovieStream(&streamHandle, &albumEntry.file_id)))
+    {
+        printf("Failed to open video stream!\n");
+        return;
+    }
+
+    // Initialize the buffer
+    workBuffer = (unsigned char*)calloc(workBufferSize, sizeof(unsigned char));
+
+    // Get the size the stream will be
+    capsaGetAlbumMovieStreamSize(streamHandle, &streamSize);
+
+    printf("stream size: %ld\n", streamSize);
+}
+
+VideoStreamReader::~VideoStreamReader()
+{
+    // Free the read buffer
+    free(workBuffer);
+
+    // Close the stream
+    capsaCloseAlbumMovieStream(streamHandle);
+}
+
+u64 VideoStreamReader::GetStreamSize()
+{
+    // If the stream size is bigger than INT_MAX, it's probably invalid and we'll return 0
+    if (streamSize > 0x80000000) return 0;
+
+    return streamSize;
+}
+
+u64 VideoStreamReader::Read(char* outBuffer, u64 numBytes)
+{
+    // Calculate a few statistics
+    u64 remaining = streamSize - bytesRead;
+    u64 bufferIndex = bytesRead / workBufferSize;
+    u64 currentOffset = bytesRead % workBufferSize;
+    u64 readSize = std::min(std::min(numBytes, workBufferSize - currentOffset), remaining);
+    float percentage = ((float)bytesRead / (float)streamSize) * 100;
+    
+    // Could debug the video stream read progress here
+    //printf("Progress: %f\n", percentage);
+
+    // If no data is remaining, exit
+    if (remaining <= 0) return 0;
+
+    // Read the next buffer
+    Result readResult = 0;
+    if (bufferIndex != lastBufferIndex)
+    {
+        u64 actualSize = 0;
+        readResult = capsaReadMovieDataFromAlbumMovieReadStream(streamHandle, bufferIndex * workBufferSize, workBuffer, workBufferSize, &actualSize);
+        lastBufferIndex = bufferIndex;
+    }
+
+    // Copy from the work buffer to the the output buffer
+    unsigned char* startOutBuffer = workBuffer + currentOffset;
+    memcpy(outBuffer, startOutBuffer, readSize);
+
+    // Keep track of progress
+    bytesRead += readSize;
+
+    // If it worked, return the number of bytes we just read, otherwise return 0
+    if (R_SUCCEEDED(readResult))
+        return readSize;
+    else 
+    {
+        printf("Error reading movie stream!");
+        return 0;
+    }
+}
+
 AlbumWrapper* AlbumWrapper::Get()
 {
     // If no singleton is existing, create a new instance
@@ -410,16 +487,46 @@ bool AlbumWrapper::GetFileContent(int id, void* outBuffer, u64 bufferSize, u64* 
     // Get the content with that ID
     CapsAlbumEntry entry = cachedAlbumContent[id];
 
-    // Load the file content
-    Result result = capsaLoadAlbumFile(&entry.file_id, outActualFileSize, outBuffer, bufferSize);
-    if (R_SUCCEEDED(result))
+    // If it's a screenshot, we can use capsaLoadAlbumFile to retrieve it
+    if (entry.file_id.content == CapsAlbumFileContents_ScreenShot || entry.file_id.content == CapsAlbumFileContents_ExtraScreenShot)
     {
-        return true;
+        // Load the file content
+        Result result = capsaLoadAlbumFile(&entry.file_id, outActualFileSize, outBuffer, bufferSize);
+        if (R_SUCCEEDED(result))
+        {
+            return true;
+        }
+        else
+        {
+            printf("Failed to get file content for file %d: %d-%d\n", id, R_MODULE(result), R_DESCRIPTION(result));
+            return false; 
+        }
     }
     else
     {
-        printf("Failed to get file content for file %d: %d-%d\n", id, R_MODULE(result), R_DESCRIPTION(result));
-        return false; 
+        // It's a video, use our movie stream reader
+        VideoStreamReader* videoStreamReader = new VideoStreamReader(entry);
+
+        /*CURLcode curl_mime_data_cb(curl_mimepart * part, curl_off_t datasize,
+                                     curl_read_callback readfunc, curl_seek_callback seekfunc,
+                                     curl_free_callback freefunc, void * arg);*/
+
+        *outActualFileSize = videoStreamReader->GetStreamSize();
+        u64 readLeft = videoStreamReader->GetStreamSize();
+        size_t bytesRead = 0;
+        while (readLeft > 0)
+        {
+            char* ptr = ((char*)outBuffer) + bytesRead;
+            u64 readResult = videoStreamReader->Read(ptr, videoStreamReader->GetStreamSize());
+            //printf("Read Result %lu StreamSize %lu BytesRead %lu ReadLeft %lu\n", readResult, videoStreamReader->GetStreamSize(), bytesRead, readLeft);
+
+            bytesRead += readResult;
+            readLeft -= readResult;
+        }
+
+        delete videoStreamReader;
+
+        return readLeft <= 0;
     }
 }
 
