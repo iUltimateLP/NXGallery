@@ -13,7 +13,7 @@ TITLE_ID_APP = 4200000000000909
 #	Scripts
 
 # 	Phony target
-.PHONY: all app sysmodule stage clean
+.PHONY: all app frontend stageApp upload clean
 
 # 	Build all
 all: app
@@ -21,8 +21,12 @@ all: app
 
 #	Build the application
 app:
-	@$(MAKE) -C $@
+	@$(MAKE) -j -C app
 	@$(MAKE) stageApp
+
+#	Build the frontend
+frontend:
+	@$(MAKE) --always-make -C frontend
 
 #	Stage the release into one single folder which can be copied on the SD card
 stageApp:
@@ -37,5 +41,6 @@ upload:
 clean:
 	@rm -rf out/
 	@$(MAKE) clean -C app/
+	@$(MAKE) clean -C app/lib/borealis
 
 #---------------------------------------------------------------------------------

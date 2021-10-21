@@ -3,45 +3,42 @@
     Made with love by Jonathan Verbeek (jverbeek.de)
 */
 
+import React from "react";
+import ReactDOM from "react-dom";
+
 // Material UI imports
-const {
+import {
     colors,
     CssBaseline,
     ThemeProvider,
     Typography,
     Container,
-    makeStyles,
-    createMuiTheme,
-    Box,
-    SvgIcon,
-    Link,
+    createTheme,
     Button,
     Grid,
     Paper,
-    GridList,
-    GridListTile,
-    Modal,
-    ButtonGroup,
     Icon,
-    BottomNavigation,
-    Backdrop,
     CircularProgress,
-    CardMedia,
     Dialog,
-    DialogTitle,
     DialogContent,
-    DialogContentText,
     DialogActions,
-    useMediaQuery,
     TableContainer,
     Table,
     TableBody,
     TableRow,
     TableCell
-} = MaterialUI;
+} from "@material-ui/core";
+import { Pagination } from "@material-ui/lab";
+
+// Set the IP of your switch so it can connect in dev mode
+const DEV_IP = "http://192.168.178.46:1234";
+const getBackendURL = () => {
+    const DEV_MODE = process.env.NODE_ENV === "development";
+    return DEV_MODE ? DEV_IP : "";
+};
 
 // Create a light and dark material UI theme
-const lightTheme = createMuiTheme({
+const lightTheme = createTheme({
     palette: {
         type: "light",
         primary: {
@@ -59,7 +56,7 @@ const lightTheme = createMuiTheme({
     }
 });
 
-const darkTheme = createMuiTheme({
+const darkTheme = createTheme({
     palette: {
         type: "dark",
         primary: {
@@ -86,7 +83,7 @@ class GalleryItem extends React.Component {
 
         this.state = {
             item: props.item,
-            isVideo: props.item.type == "video",
+            isVideo: props.item.type === "video",
             dialogOpen: false
         };
 
@@ -113,26 +110,24 @@ class GalleryItem extends React.Component {
         return string;
     }
 
-    getDownloadFilename() {
-        var fileName;
-        var date = this.getDateString();
-        date = date.replace(/[:.\s]/g, "_");
-        var extension = this.state.item.type == "video" ? ".mp4" : ".jpg";
-
-        fileName = this.state.item.game.replace(/\s/g, "_") + "_" + date + extension;
-        return fileName;
-    }
+    // https://stackoverflow.com/a/20732091/5028730
+    humanFileSize(size) {
+        var i = Math.floor( Math.log(size) / Math.log(1024) );
+        return ( size / Math.pow(1024, i) ).toFixed(2) * 1 + ' ' + ['B', 'KB', 'MB', 'GB', 'TB'][i];
+    };
 
     render() {
         // Decide whether to show a video or an image element
         let viewElement;
         let viewElementBig;
+        const previewURL = getBackendURL() + "/thumbnail?id=" + this.state.item.id;
+        const fullURL = getBackendURL() + "/file?id=" + this.state.item.id;
         if (this.state.isVideo) {
-            viewElement = <video src={this.state.item.path} controls preload={"none"}></video>
-            viewElementBig = <video src={this.state.item.path} controls preload={"none"} className={"gallery-content-big"}></video>;
+            viewElement = <video src={fullURL} controls preload={"none"} poster={previewURL}></video>
+            viewElementBig = <video src={fullURL} controls preload={"none"} className={"gallery-content-big"} poster={previewURL}></video>;
         } else {
-            viewElement = <img src={this.state.item.path}></img>
-            viewElementBig = <a href={this.state.item.path} target="_blank"><img src={this.state.item.path} className={"gallery-content-big"}></img></a>;
+            viewElement = <img src={previewURL} alt=""></img>
+            viewElementBig = <a href={fullURL} target="_blank" rel="noreferrer"><img src={fullURL} className={"gallery-content-big"} alt=""></img></a>;
         }
 
         return (
@@ -145,14 +140,14 @@ class GalleryItem extends React.Component {
                     <DialogContent>
                         {viewElementBig}
                         <div className={"gallery-content-bar"}>
-                            <a download={this.getDownloadFilename()} href={this.state.item.path}><Button color="primary"><i className={"fas fa-download"}></i> Download</Button></a>
+                            <a download={this.state.item.fileName} href={fullURL}><Button color="primary"><i className={"fas fa-download"}></i> Download</Button></a>
                         </div>
                         <TableContainer>
                             <Table>
                                 <TableBody>
                                     <TableRow>
                                         <TableCell><b>Type</b></TableCell>
-                                        <TableCell align="right">{this.state.item.type == "video" ? "Video" : "Screenshot"}</TableCell>
+                                        <TableCell align="right">{this.state.item.type === "video" ? "Video" : "Screenshot"}</TableCell>
                                     </TableRow>
                                     <TableRow>
                                         <TableCell><b>Taken at</b></TableCell>
@@ -164,14 +159,18 @@ class GalleryItem extends React.Component {
                                     </TableRow>
                                     <TableRow>
                                         <TableCell><b>Stored at</b></TableCell>
-                                        <TableCell align="right">{this.state.item.storedAt == "sd" ? "SD Card" : "Internal Storage"}</TableCell>
+                                        <TableCell align="right">{this.state.item.storedAt === "sd" ? "SD Card" : "Internal Storage"}</TableCell>
+                                    </TableRow>
+                                    <TableRow>
+                                        <TableCell><b>Size</b></TableCell>
+                                        <TableCell align="right">{this.humanFileSize(this.state.item.fileSize)}</TableCell>
                                     </TableRow>
                                 </TableBody>
                             </Table>
                         </TableContainer>
                     </DialogContent>
                     <DialogActions>
-                        <Button autoFocus color="primary" onClick={this.dialogClose}>Close</Button>
+                        <Button color="primary" onClick={this.dialogClose}>Close</Button>
                     </DialogActions>
                 </Dialog>
             </Grid>
@@ -189,6 +188,11 @@ class App extends React.Component {
             currentPage: 1,
             maxPages: 1,
             currentTheme: "light",
+            stats: {
+                numScreenshots: 0,
+                numVideos: 0,
+                indexTime: 0
+            },
             error: false
         };
     }
@@ -199,13 +203,14 @@ class App extends React.Component {
     }
 
     fetchGallery() {
-        fetch("/gallery?page=" + this.state.currentPage)
+        fetch(getBackendURL() + "/gallery?page=" + this.state.currentPage)
         .then(res => res.json())
         .then((result) => {
             this.setState({
                 galleryContent: result.gallery,
                 maxPages: result.pages,
                 currentTheme: result.theme,
+                stats: result.stats,
                 error: false
             })
         }, (error) => {
@@ -215,19 +220,9 @@ class App extends React.Component {
         });
     }
 
-    prevPage(e) {
-        // Go one page back
+    onPageChange(e, page) {
         this.setState({
-            currentPage: this.state.currentPage - 1
-        }, () => {
-            this.fetchGallery();
-        });
-    }
-
-    nextPage(e) {
-        // Go one page forth
-        this.setState({
-            currentPage: this.state.currentPage + 1
+            currentPage: page
         }, () => {
             this.fetchGallery();
         });
@@ -235,13 +230,13 @@ class App extends React.Component {
 
     render() {
         return (
-            <ThemeProvider theme={this.state.currentTheme == "light" ? lightTheme : darkTheme}>
+            <ThemeProvider theme={this.state.currentTheme === "light" ? lightTheme : darkTheme}>
                 <CssBaseline/>
                 <Container style={{flexGrow: 1, padding: "8px"}}>
-                    <Typography variant="h2" color="textPrimary" align="center">NXGallery<a href={"https://github.com/iUltimateLP/NXGallery"} target={"_blank"}><i className={`fab fa-github ${this.state.currentTheme}`}></i></a></Typography>
-                    <Typography variant="h6" color="textSecondary" align="center" style={{paddingBottom: "16px"}}>Browse your Nintendo Switch album with ease!</Typography>
+                    <Typography variant="h2" color="textPrimary" align="center">NXGallery<a href={"https://github.com/iUltimateLP/NXGallery"} target={"_blank"} rel={"noreferrer"}><i className={`fab fa-github ${this.state.currentTheme}`}></i></a></Typography>
+                    <Typography variant="h6" color="textSecondary" align="center" style={{paddingBottom: "16px", fontWeight: "100"}}>Indexed {this.state.stats.numScreenshots} photos and {this.state.stats.numVideos} videos in {this.state.stats.indexTime.toPrecision(3)} seconds.</Typography>
 
-                    <Grid container spacing={2} justify="center">
+                    <Grid container spacing={2} justifyContent="center">
                         {this.state.galleryContent.map((value) => (
                             <GalleryItem key={value.takenAt} item={value}/>
                         ))}
@@ -251,17 +246,16 @@ class App extends React.Component {
                         <Typography variant="h6" color="error" align="center">Oh no, an error has occured :(</Typography>
                     }
 
-                    {(this.state.galleryContent.length == 0 && !this.state.error) &&
-                        <CircularProgress color="primary"></CircularProgress>
+                    {(this.state.galleryContent.length === 0 && !this.state.error) &&
+                        <Container align="center" style={{paddingTop: "20px"}}>
+                            <CircularProgress color="primary"></CircularProgress>
+                        </Container>
                     }
-                    
-                    {!this.state.error && <Container align="center" style={{paddingTop: "20px", paddingBottom: "12px"}}>
-                        <ButtonGroup color="primary">
-                            <Button onClick={() => this.prevPage()} disabled={this.state.currentPage == 1}><Icon>keyboard_arrow_left</Icon></Button>
-                            <Button>{this.state.currentPage}</Button>
-                            <Button onClick={() => this.nextPage()} disabled={this.state.currentPage == this.state.maxPages}><Icon>keyboard_arrow_right</Icon></Button>
-                        </ButtonGroup>
-                    </Container>
+
+                    {(this.state.galleryContent.length > 0 && !this.state.error) && 
+                        <Container align="center" style={{paddingTop: "20px", paddingBottom: "12px"}}>
+                            <Pagination count={this.state.maxPages} className={"pagination"} onChange={(e, page) => this.onPageChange(e, page)}/>
+                        </Container>
                     }
 
                     <Container align="center" className={"footer"}>

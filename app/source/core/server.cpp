@@ -1,13 +1,36 @@
 /*
     NXGallery for Nintendo Switch
     Made with love by Jonathan Verbeek (jverbeek.de)
+
+    MIT License
+
+    Copyright (c) 2020-2021 Jonathan Verbeek
+
+    Permission is hereby granted, free of charge, to any person obtaining a copy
+    of this software and associated documentation files (the "Software"), to deal
+    in the Software without restriction, including without limitation the rights
+    to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+    copies of the Software, and to permit persons to whom the Software is
+    furnished to do so, subject to the following conditions:
+
+    The above copyright notice and this permission notice shall be included in all
+    copies or substantial portions of the Software.
+
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+    OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+    SOFTWARE.
 */
 
 #include "server.hpp"
 #include "albumwrapper.hpp"
-using namespace nxgallery;
 
-WebServer::WebServer(int port)
+using namespace nxgallery::core;
+
+CWebServer::CWebServer(int port)
 {
     // Store the port
     this->port = port;
@@ -16,10 +39,10 @@ WebServer::WebServer(int port)
     isRunning = false;
 
     // We won't initialize the web server here just now, 
-    // the caller can do that by calling WebServer::Start
+    // the caller can do that by calling CWebServer::Start
 }
 
-void WebServer::Start()
+void CWebServer::Start()
 {
     // If we're already running, don't try to start again
     if (isRunning)
@@ -29,17 +52,17 @@ void WebServer::Start()
     static struct sockaddr_in serv_addr;
     serv_addr.sin_addr.s_addr = INADDR_ANY; // The Switch'es IP address
     serv_addr.sin_port = htons(port);
-    serv_addr.sin_family = AF_INET; // The Switch only supports AF_INET and AF_ROUTE: https://switchbrew.org/wiki/Sockets_services#Socket
+    serv_addr.sin_family = PF_INET; // The Switch only supports AF_INET and AF_ROUTE: https://switchbrew.org/wiki/Sockets_services#Socket
 
     // Create a new STREAM IPv4 socket
-    serverSocket = socket(PF_INET, SOCK_STREAM, 0);
+    serverSocket = socket(AF_INET, SOCK_STREAM, 0);
     if (serverSocket < 0)
     {
         printf("Failed to create a web server socket: %d\n", errno);
         return;
     }
 
-    // Set a relatively short timeout for recv() calls, see WebServer::ServeRequest for more info why
+    // Set a relatively short timeout for recv() calls, see CWebServer::ServeRequest for more info why
     struct timeval recvTimeout;
     recvTimeout.tv_sec = 1;
     recvTimeout.tv_usec = 0;
@@ -68,20 +91,20 @@ void WebServer::Start()
     isRunning = true;
 }
 
-void WebServer::GetAddress(char* buffer)
+void CWebServer::GetAddress(char* buffer)
 {
     static struct sockaddr_in serv_addr;
     serv_addr.sin_addr.s_addr = gethostid();
-    sprintf(buffer, "%s:%d", inet_ntoa(serv_addr.sin_addr), port);
+    sprintf(buffer, "http://%s:%d/", inet_ntoa(serv_addr.sin_addr), port);
 }
 
-void WebServer::AddMountPoint(const char* path)
+void CWebServer::AddMountPoint(const char* path)
 {
     // Add it to the mountPoints vector
     mountPoints.push_back(path);
 }
 
-void WebServer::ServeLoop()
+void CWebServer::ServeLoop()
 {
     // Asynchronous / event-driven loop using poll
     // More here: http://man7.org/linux/man-pages/man2/poll.2.html
@@ -143,7 +166,7 @@ void WebServer::ServeLoop()
     
 }
 
-void WebServer::ServeRequest(int in, int out, std::vector<const char*> mountPoints)
+void CWebServer::ServeRequest(int in, int out, std::vector<const char*> mountPoints)
 {
     // A lot of the code here is taken from the german page here: https://www.kompf.de/cplus/artikel/httpserv.html
     
@@ -167,17 +190,20 @@ void WebServer::ServeRequest(int in, int out, std::vector<const char*> mountPoin
     char path[256];
 
     // Will hold the file descriptor of the file which was requested (e.g. a .html file)
-    int fileToServe;
+    int fileToServe = 0;
 
     // For the /gallery endpoint, this holds the page argument
     int galleryPage = 0;
+
+    // For the file endpoint, this holds the requested file ID
+    int fileId = 0;
 
     // While there is data to receive, receive it
     // NOTE: recv() is a blocking call, see here: http://man7.org/linux/man-pages/man2/recv.2.html
     //       Therefore, the code may halt here to wait for incoming data. Some browsers, such as
     //       Google Chrome like to open a second socket (but not send anything) as a backup socket
     //       for optimization. Therefore, we would wait forever for data to arrive on that socket.
-    //       That's why I set a timeout for recv calls() before, see WebServer::Start()
+    //       That's why I set a timeout for recv calls() before, see CWebServer::Start()
     bool breakReceive = false;
     while ((bytesReceived = recv(in, b, sizeof(buffer) - bytesTotal, 0)) > 0) 
     {
@@ -273,12 +299,12 @@ void WebServer::ServeRequest(int in, int out, std::vector<const char*> mountPoin
         // No file to serve, check for the /gallery endpoint (and also parse out the arguments directly)
         else if (sscanf(url, "/gallery?page=%d", &galleryPage))
         {
-            // First, send a 200 OK back
-            sprintf(buffer, "HTTP/1.0 200 OK\nContent-Type: application/json\n\n");
+            // First, send a 200 OK back with JSON content data
+            sprintf(buffer, "HTTP/1.0 200 OK\nContent-Type: application/json\nAccess-Control-Allow-Origin: *\n\n");
             send(out, buffer, strlen(buffer), 0);
 
             // Ask the album wrapper to process the request
-            std::string jsonData = nxgallery::AlbumWrapper::Get()->GetGalleryContent(galleryPage);
+            std::string jsonData = nxgallery::core::CAlbumWrapper::Get()->GetGalleryContent(galleryPage);
 
             // Send out the data to the socket
             const char* dataPtr = jsonData.data();
@@ -293,6 +319,86 @@ void WebServer::ServeRequest(int in, int out, std::vector<const char*> mountPoin
 
                 dataPtr += bytesSent;
                 dataSize -= bytesSent;
+            }
+        }
+        // Endpoint to retrieve the thumbnail of a picture
+        else if (sscanf(url, "/thumbnail?id=%d", &fileId))
+        {
+            // First, send a 200 OK back with the right content type
+            sprintf(buffer, "HTTP/1.0 200 OK\nContent-Type: image/jpeg\nAccess-Control-Allow-Origin: *\n\n");
+            send(out, buffer, strlen(buffer), 0);
+
+            // Allocate the buffer for the thumbnail
+            // 64kb is enough for a thumbnail
+            int imageBufferSize = 64 * 1024;
+            char* imageBuffer = (char*)malloc(imageBufferSize);
+
+            // The actual size is smaller than the workbuffer we allocated, so only send what we actually use
+            u64 actualImageBufferSize = 0;
+            if (nxgallery::core::CAlbumWrapper::Get()->GetFileThumbnail(fileId, imageBuffer, imageBufferSize, &actualImageBufferSize))
+            {
+                // Send raw JPEG data
+                int bytesSent = 0;
+
+                // Note we only send the actual size GetFileContent returned, not the whole buffer which might contain useless data
+                while (actualImageBufferSize > 0)
+                {
+                    bytesSent = send(out, imageBuffer, actualImageBufferSize, 0);
+                    if (bytesSent < 0)
+                        break;
+
+                    imageBuffer += bytesSent;
+                    actualImageBufferSize -= bytesSent;
+                }
+            }
+            else
+            {
+                // Send a server error back
+                sprintf(buffer, "HTTP/1.0 500 Invalid content ID\nAccess-Control-Allow-Origin: *\n\n");
+                send(out, buffer, strlen(buffer), 0);
+            }
+        }
+        // Endpoint to retrieve the full content of a image/video
+        else if (sscanf(url, "/file?id=%d", &fileId))
+        {
+            // Get the media first to check what type it is
+            CapsAlbumFileContents fileType = nxgallery::core::CAlbumWrapper::Get()->GetAlbumEntryType(fileId);
+            bool isVideo = (fileType == CapsAlbumFileContents_Movie || fileType == CapsAlbumFileContents_ExtraMovie);
+
+            // Send a 200 OK back with the correct content type
+            std::string contentType = isVideo ? "video/mp4" : "image/jpeg";
+            std::string downloadFileName = nxgallery::core::CAlbumWrapper::Get()->GetAlbumEntryFilename(fileId);
+            sprintf(buffer, "HTTP/1.0 200 OK\nContent-Type: %s\nAccess-Control-Allow-Origin: *\nContent-Disposition: filename=\"%s\"\n\n", contentType.c_str(), downloadFileName.c_str());
+            send(out, buffer, strlen(buffer), 0);
+
+            // Allocate a buffer for the file content
+            // For screenshots, a 512kb buffer is okay, for videos, a 32mb buffer is used
+            int fileBufferSize = isVideo ? (32 * 1024 * 1024) : (512 * 1024);
+            char* fileBuffer = (char*)malloc(fileBufferSize);
+
+            // The actual size is smaller than the workbuffer we allocated, so only send what we actually use
+            u64 actualFileBufferSize = 0; 
+            if (nxgallery::core::CAlbumWrapper::Get()->GetFileContent(fileId, fileBuffer, fileBufferSize, &actualFileBufferSize))
+            {
+                // Send raw file data
+                int bytesSent = 0;
+
+                // Note we only send the actual size GetFileContent returned, not the whole buffer which might contain useless data
+                while (actualFileBufferSize > 0)
+                {
+                    bytesSent = send(out, fileBuffer, actualFileBufferSize, 0);
+                    if (bytesSent < 0)
+                        break;
+
+                    fileBuffer += bytesSent;
+                    actualFileBufferSize -= bytesSent;
+                }
+            }
+            else
+            {
+                // Send a server error back
+                sprintf(buffer, "HTTP/1.0 500 Invalid content ID\nAccess-Control-Allow-Origin: *\n\n");
+                send(out, buffer, strlen(buffer), 0);
             }
         }
         // No file, and no endpoint will result in a 404
@@ -314,7 +420,7 @@ void WebServer::ServeRequest(int in, int out, std::vector<const char*> mountPoin
     }
 }
 
-void WebServer::Stop()
+void CWebServer::Stop()
 {
     // Not running anymore
     isRunning = false;

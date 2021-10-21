@@ -1,6 +1,10 @@
-# VSCode config folder
-.vscode/
-
 # Artifact / output folders
 build/
 out/
+*.elf
+*.nacp
+*.nro
+
+# Frontend
+frontend/node_modules/
+frontend/build/

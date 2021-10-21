@@ -1,6 +1,28 @@
 /*
     NXGallery for Nintendo Switch
     Made with love by Jonathan Verbeek (jverbeek.de)
+
+    MIT License
+
+    Copyright (c) 2020-2021 Jonathan Verbeek
+
+    Permission is hereby granted, free of charge, to any person obtaining a copy
+    of this software and associated documentation files (the "Software"), to deal
+    in the Software without restriction, including without limitation the rights
+    to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+    copies of the Software, and to permit persons to whom the Software is
+    furnished to do so, subject to the following conditions:
+
+    The above copyright notice and this permission notice shall be included in all
+    copies or substantial portions of the Software.
+
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+    OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+    SOFTWARE.
 */
 
 // Include the most common headers from the C standard library
@@ -12,13 +34,22 @@
 // Include the main libnx system header, for Switch development
 #include <switch.h>
 
-// Include the headers from NXGallery
-#include "util.hpp"
-#include "server.hpp"
-#include "albumwrapper.hpp"
+// Include NXGallery core
+#include "core/server.hpp"
+#include "core/albumwrapper.hpp"
+
+// Include NXGallery UI
+#include "ui/mainframe.hpp"
+#include "ui/qrcode.hpp"
+#include "ui/mainactivity.hpp"
 
 // Port the server should run on
 #define SERVER_PORT 1234
+
+// The main activity Borealis runs
+nxgallery::ui::MainActivity* mainActivity = nullptr;
+
+using namespace brls::literals; // for _i18n
 
 // Loads up and initializes all libnx modules needed
 void initSwitchModules()
@@ -66,121 +97,95 @@ void exitSwitchModules()
     socketExit();
 }
 
+// Initializes the borealis UI library
+bool initBorealis()
+{
+    // Set log level
+    brls::Logger::setLogLevel(brls::LogLevel::DEBUG);
+
+    // Init the app and internalization
+    if (!brls::Application::init())
+    {
+        brls::Logger::error("Unable to initialize UI! Exiting");
+        return false;
+    }
+
+    // Create main window
+    brls::Application::createWindow("NXGallery");
+
+    // Have the application register an action on every activity that will quit
+    brls::Application::setGlobalQuit(true);
+
+    // Register custom fonts
+    brls::Application::loadFontFromFile("mono", "romfs:/robotomono/RobotoMono-Regular.ttf");
+
+    // Register custom theme variables
+    brls::getLightTheme().addColor("nxgallery/qrcode/foreground", nvgRGB(0, 0, 0));
+    brls::getLightTheme().addColor("nxgallery/qrcode/background", brls::Application::getTheme().getColor("brls/background"));
+    brls::getDarkTheme().addColor("nxgallery/qrcode/foreground", nvgRGB(255, 255, 255));
+    brls::getDarkTheme().addColor("nxgallery/qrcode/background", brls::Application::getTheme().getColor("brls/background"));
+
+    // Register custom components
+    brls::Application::registerXMLView("nxgallery:MainFrame", nxgallery::ui::MainFrame::create);
+    brls::Application::registerXMLView("nxgallery:QrCode", nxgallery::ui::QrCode::create);
+
+    // Create a new main activity and push it to the stack
+    mainActivity = new nxgallery::ui::MainActivity();
+    brls::Application::pushActivity(mainActivity);
+
+    // Set the label's font to be mono
+    mainActivity->address->setFont(brls::Application::getFont("mono"));
+
+    return true;
+}
+
 // Main program entrypoint
 int main(int argc, char* argv[])
 {
-    // This example uses a text console, as a simple way to output text to the screen.
-    // If you want to write a software-rendered graphics application,
-    //   take a look at the graphics/simplegfx example, which uses the libnx Framebuffer API instead.
-    // If on the other hand you want to write an OpenGL based application,
-    //   take a look at the graphics/opengl set of examples, which uses EGL instead.
-    consoleInit(NULL);
-
     // Initialize all modules NXGallery needs
     initSwitchModules();
 
-    // Configure the gamepad input
-    padConfigureInput(1, HidNpadStyleSet_NpadStandard);
-
-    // Initialize the default gamepad (which reads handheld mode inputs as well as the first connected controller)
-    PadState pad;
-    padInitializeDefault(&pad);
-
-    // Initialize nxlink stdout and stderr redirect
-#ifdef __DEBUG__
-    nxlinkStdio();
-#endif
-
-    // Print a welcome message
-    // Let's be nice!
-    std::vector<std::string> NiceLines = {
-        "You look nice today!",
-        "I miss Brewster...",
-        "Did you know you can calculate the times the DVD logo hits the corner?",
-        "Much love to the whole Switch Homebrew team!",
-        "I wish I was better at Kart",
-        "You should try Minecraft!",
-        "Nintendo... seriously?",
-        "Did you know? The moon has \"moonquakes!\"",
-        "You now breathe in manual mode!",
-        "Rabbits are incapable of spewing.",
-        "Bees sometimes sting other bees",
-        "I should add more features instead of thinking of lines to put here."
-    };
-
-    srand(time(NULL));
-
-    printCentered("\n\n");
-    printCentered(" _   _  __   __   _____           _   _                       \n");
-    printCentered("| \\ | | \\ \\ / /  / ____|         | | | |                      \n");
-    printCentered("|  \\| |  \\ V /  | |  __    __ _  | | | |   ___   _ __   _   _ \n");
-    printCentered("| . ` |   > <   | | |_ |  / _` | | | | |  / _ \\ | '__| | | | |\n");
-    printCentered("| |\\  |  / . \\  | |__| | | (_| | | | | | |  __/ | |    | |_| |\n");
-    printCentered("|_| \\_| /_/ \\_\\  \\_____|  \\__,_| |_| |_|  \\___| |_|     \\__, |\n");
-    printCentered("                                                         __/ |\n");
-    printCentered("                                                         |___/ \n\n");
-    printCentered(VERSION_STRING);
-    printf("\n\n");
-    printf(CONSOLE_YELLOW);
-    printCentered((" +++ " + NiceLines[rand() % NiceLines.size()] + " +++ ").c_str());
-    printf("\n\n");
-    printf(CONSOLE_RED);
-    printCentered("Press + to exit");
-    printf("\n\n");
-    printf(CONSOLE_RESET);
+    // Initialize Borealis
+    if (!initBorealis())
+    {
+        // If it didn't work, exit all previously opened Switch modules and return this app with an error
+        exitSwitchModules();
+        return EXIT_FAILURE;
+    }
 
     // Initialize the album wrapper
-    nxgallery::AlbumWrapper::Get()->Init();
+    nxgallery::core::CAlbumWrapper::Get()->Init();
 
     // Create the web server for hosting the web interface, add romfs:/www as a mount point for
     // static web assets and start it
-    nxgallery::WebServer* webServer = new nxgallery::WebServer(SERVER_PORT);
+    nxgallery::core::CWebServer* webServer = new nxgallery::core::CWebServer(SERVER_PORT);
     webServer->AddMountPoint("romfs:/www");
     webServer->Start();
 
-    printf(CONSOLE_GREEN);
+    // Get the address the server is listening to
     char serverAddress[32];
     webServer->GetAddress(serverAddress);
-    printCentered("Open %s in your web browser\n", serverAddress);
-    printf(CONSOLE_RESET);
 
-    // Get all paths where Nintendo stores the album content and add these
-    // as mount points for the web server
-    for (const char* albumPath : nxgallery::AlbumWrapper::Get()->GetAlbumContentPaths())
+    // Set up the UI display
+    mainActivity->qrCode->setText(std::string(serverAddress));
+    mainActivity->address->setText(std::string(serverAddress));
+
+    // Run the Borealis loop
+    while (brls::Application::mainLoop())
     {
-        webServer->AddMountPoint(albumPath);
-    }
-
-    // Main loop
-    while (appletMainLoop())
-    {
-        // Scan all gamepad. This should be done once for each frame
-        padUpdate(&pad);
-
-        // padGetButtonsDown returns the set of buttons that have been
-        // newly pressed in this frame compared to the previous one
-        u64 kDown = padGetButtonsDown(&pad);
-
-        if (kDown & HidNpadButton_Plus)
-            break; // break in order to return to hbmenu
-
         // Run the web server loop
         webServer->ServeLoop();
-
-        // Update the console, sending a new frame to the display
-        consoleUpdate(NULL);
     }
 
     // Stop the web server
     webServer->Stop();
 
     // Stop the album wrapper
-    nxgallery::AlbumWrapper::Get()->Shutdown();
+    nxgallery::core::CAlbumWrapper::Get()->Shutdown();
 
     // Deinitialize all modules NXGallery needed
     exitSwitchModules();
 
-    // Deinitialize and clean up resources used by the console (important!)
-    consoleExit(NULL);
-    return 0;
+    // Return gracefully
+    return EXIT_SUCCESS;
 }

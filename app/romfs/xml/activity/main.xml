@@ -1,0 +1,118 @@
+<!--
+    NXGallery for Nintendo Switch
+    Made with love by Jonathan Verbeek (jverbeek.de)
+
+    MIT License
+
+    Copyright (c) 2020-2021 Jonathan Verbeek
+
+    Permission is hereby granted, free of charge, to any person obtaining a copy
+    of this software and associated documentation files (the "Software"), to deal
+    in the Software without restriction, including without limitation the rights
+    to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+    copies of the Software, and to permit persons to whom the Software is
+    furnished to do so, subject to the following conditions:
+
+    The above copyright notice and this permission notice shall be included in all
+    copies or substantial portions of the Software.
+
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+    OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+    SOFTWARE.
+-->
+
+<!-- Main app frame -->
+<nxgallery:MainFrame
+    title="@i18n/nxgallery/title"
+    iconInterpolation="linear"
+    icon="@res/img/NXGallery_transparent.png" 
+    id="mainframe" >
+
+    <!-- Main content box -->
+    <brls:Box
+        width="100%"
+        height="auto"
+        axis="column"
+        paddingLeft="75"
+        paddingRight="75"
+        justifyContent="center"
+        alignItems="center" >
+
+        <!-- QR code -->
+        <nxgallery:QrCode
+            id="qrcode"
+            width="auto"
+            height="33%"
+            pixelsPerModule="10"
+            marginBottom="50" />
+
+        <!-- Container for text under QR code -->
+        <brls:Box
+            width="100%"
+            height="auto"
+            axis="column" 
+            justifyContent="center"
+            alignItems="center" >
+
+            <!-- Heading -->
+            <brls:Label
+                width="auto"
+                height="auto"
+                text="@i18n/nxgallery/label/heading"
+                fontSize="36" 
+                marginBottom="20" />
+
+            <!-- Subtext container -->
+            <brls:Box
+                width="auto"
+                height="auto"
+                axis="row"
+                justifyContent="center" >
+
+                <!-- Text before IP -->
+                <brls:Label
+                    width="auto"
+                    height="auto"
+                    text="@i18n/nxgallery/label/sub/a" />
+
+                <!-- IP address container -->
+                <brls:Box
+                    width="auto"
+                    height="auto"
+                    paddingLeft="10"
+                    paddingTop="5"
+                    paddingBottom="5"
+                    paddingRight="0"
+                    marginLeft="5"
+                    marginRight="7"
+                    backgroundColor="#000000" 
+                    borderColor="@theme/brls/header/subtitle"
+                    borderThickness="1"
+                    cornerRadius="4" >
+
+                        <!-- IP address -->
+                        <brls:Label
+                            id="address"
+                            width="auto"
+                            height="auto"
+                            textColor="#ffffff" />
+
+                </brls:Box>
+
+                <!-- Text after IP -->
+                <brls:Label
+                    width="auto"
+                    height="auto"
+                    text="@i18n/nxgallery/label/sub/b" />
+
+            </brls:Box>
+
+        </brls:Box>
+
+    </brls:Box>
+
+</nxgallery:MainFrame>
