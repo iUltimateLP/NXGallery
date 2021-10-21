@@ -49,6 +49,9 @@
         "typeinfo": "cpp",
         "valarray": "cpp",
         "bitset": "cpp",
-        "format": "cpp"
+        "format": "cpp",
+        "netdb.h": "c",
+        "ifaddrs.h": "c",
+        "socket.h": "c"
     }
 }

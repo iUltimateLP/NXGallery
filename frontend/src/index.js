@@ -34,7 +34,6 @@ import { Pagination } from "@material-ui/lab";
 const DEV_IP = "http://192.168.178.46:1234";
 const getBackendURL = () => {
     const DEV_MODE = process.env.NODE_ENV == "development";
-    console.log("Dev mode: " + DEV_MODE);
     return DEV_MODE ? DEV_IP : "";
 };
 
@@ -121,6 +120,12 @@ class GalleryItem extends React.Component {
         return fileName;
     }
 
+    // https://stackoverflow.com/a/20732091/5028730
+    humanFileSize(size) {
+        var i = Math.floor( Math.log(size) / Math.log(1024) );
+        return ( size / Math.pow(1024, i) ).toFixed(2) * 1 + ' ' + ['B', 'KB', 'MB', 'GB', 'TB'][i];
+    };
+
     render() {
         // Decide whether to show a video or an image element
         let viewElement;
@@ -166,12 +171,16 @@ class GalleryItem extends React.Component {
                                         <TableCell><b>Stored at</b></TableCell>
                                         <TableCell align="right">{this.state.item.storedAt === "sd" ? "SD Card" : "Internal Storage"}</TableCell>
                                     </TableRow>
+                                    <TableRow>
+                                        <TableCell><b>Size</b></TableCell>
+                                        <TableCell align="right">{this.humanFileSize(this.state.item.fileSize)}</TableCell>
+                                    </TableRow>
                                 </TableBody>
                             </Table>
                         </TableContainer>
                     </DialogContent>
                     <DialogActions>
-                        <Button autoFocus color="primary" onClick={this.dialogClose}>Close</Button>
+                        <Button color="primary" onClick={this.dialogClose}>Close</Button>
                     </DialogActions>
                 </Dialog>
             </Grid>

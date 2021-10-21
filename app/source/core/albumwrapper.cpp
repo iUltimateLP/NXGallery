@@ -94,9 +94,9 @@ u64 VideoStreamReader::Read(char* outBuffer, u64 numBytes)
     u64 bufferIndex = bytesRead / workBufferSize;
     u64 currentOffset = bytesRead % workBufferSize;
     u64 readSize = std::min(std::min(numBytes, workBufferSize - currentOffset), remaining);
-    float percentage = ((float)bytesRead / (float)streamSize) * 100;
     
     // Could debug the video stream read progress here
+    //float percentage = ((float)bytesRead / (float)streamSize) * 100;
     //printf("Progress: %f\n", percentage);
 
     // If no data is remaining, exit

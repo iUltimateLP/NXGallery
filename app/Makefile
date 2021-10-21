@@ -73,7 +73,7 @@ ARCH	:=	-march=armv8-a+crc+crypto -mtune=cortex-a57 -mtp=soft -fPIE
 CFLAGS	:=	-g -Wall -O2 -ffunction-sections \
 			$(ARCH) $(DEFINES)
 
-CFLAGS	+=	$(INCLUDE) -D__SWITCH__ -DVERSION_STRING="\"$(VERSION)\"" -D__BSD_VISIBLE=1 -D_BSD_SOURCE=1
+CFLAGS	+=	$(INCLUDE) -D__SWITCH__ -DVERSION_STRING="\"$(VERSION)\"" -D__BSD_VISIBLE=1 -D_BSD_SOURCE=1 -D_GNU_SOURCE
 CFLAGS	+= -D__DEBUG__
 
 CXXFLAGS	:= $(CFLAGS) -std=c++1z -Wno-sign-compare
