@@ -160,7 +160,6 @@ int main(int argc, char* argv[])
     // static web assets and start it
     nxgallery::core::WebServer* webServer = new nxgallery::core::WebServer(SERVER_PORT);
     webServer->AddMountPoint("romfs:/www");
-
     webServer->Start();
 
     // Get the address the server is listening to
@@ -170,13 +169,6 @@ int main(int argc, char* argv[])
     // Set up the UI display
     mainActivity->qrCode->setText(std::string(serverAddress));
     mainActivity->address->setText(std::string(serverAddress));
-
-    // Get all paths where Nintendo stores the album content and add these
-    // as mount points for the web server
-    for (const char* albumPath : nxgallery::core::AlbumWrapper::Get()->GetAlbumContentPaths())
-    {
-        webServer->AddMountPoint(albumPath);
-    }
 
     // Run the Borealis loop
     while (brls::Application::mainLoop())

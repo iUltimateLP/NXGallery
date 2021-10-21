@@ -35,12 +35,6 @@
 // Defines how many items should be returned per page
 #define CONTENT_PER_PAGE 21
 
-// Screenshot locations
-#define PATH_NAND "nand:/Album"
-#define PATH_SD "sdmc:/Nintendo/Album"
-#define PATH_SD_EMUMMC "sdmc:/emuMMC/RAW1/Nintendo/Album"
-#define PATH_SD_EMUMMC_FILEBASED "sdmc:/emuMMC/SD00/Nintendo/Album"
-
 namespace nxgallery::core
 {
     // Type of homebrew installation

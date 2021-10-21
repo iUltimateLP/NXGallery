@@ -150,7 +150,7 @@ class GalleryItem extends React.Component {
                     <DialogContent>
                         {viewElementBig}
                         <div className={"gallery-content-bar"}>
-                            <a download={this.getDownloadFilename()} href={this.state.item.path}><Button color="primary"><i className={"fas fa-download"}></i> Download</Button></a>
+                            <a download={this.getDownloadFilename()} href={fullURL}><Button color="primary"><i className={"fas fa-download"}></i> Download</Button></a>
                         </div>
                         <TableContainer>
                             <Table>
