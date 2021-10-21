@@ -66,8 +66,6 @@ VideoStreamReader::VideoStreamReader(const CapsAlbumEntry& inAlbumEntry)
 
     // Get the size the stream will be
     capsaGetAlbumMovieStreamSize(streamHandle, &streamSize);
-
-    printf("stream size: %ld\n", streamSize);
 }
 
 VideoStreamReader::~VideoStreamReader()
@@ -177,6 +175,12 @@ std::string AlbumWrapper::GetGalleryContent(int page)
 {
     // Will hold the stringified JSON data
     std::string outJSON;
+
+    // Holds the stat object we pass along
+    json statObject;
+
+    // Take the time we need so we can display a cool stat
+    auto startTime = std::chrono::steady_clock::now();
 
     /*
         A "gallery content" object should look like this:
@@ -306,15 +310,29 @@ std::string AlbumWrapper::GetGalleryContent(int page)
 
         // Determine the type by looking at the file extension
         if (albumEntry.file_id.content == CapsAlbumFileContents_Movie || albumEntry.file_id.content == CapsAlbumFileContents_ExtraMovie)
+        {
             jsonObj["type"] = "video";
+        }
         else
+        {
             jsonObj["type"] = "screenshot";
-
+        }
+        
         // Push this json object to the array
         jsonArray.push_back(jsonObj);
     }
 
     finalObject["gallery"] = jsonArray;
+
+    // Stop the time!
+    auto endTime = std::chrono::steady_clock::now();
+    double indexTime = std::chrono::duration_cast<std::chrono::duration<double>>(endTime - startTime).count();
+
+    // Attach the stats
+    statObject["indexTime"] = indexTime;
+    statObject["numScreenshots"] = screenshotCount;
+    statObject["numVideos"] = videoCount;
+    finalObject["stats"] = statObject;
 
     // Stringify the JSON array
     outJSON = finalObject.dump();
@@ -435,6 +453,13 @@ void AlbumWrapper::CacheAlbum(CapsAlbumStorage location, std::vector<CapsAlbumEn
     // Add the files from the raw array to the std::vector
     for (CapsAlbumEntry entry : albumFiles)
     {
+        // Count
+        if (entry.file_id.content == CapsAlbumFileContents_Movie || entry.file_id.content == CapsAlbumFileContents_ExtraMovie)
+            videoCount++;
+        else
+            screenshotCount++;
+
+        // Add to the cache
         outCache.push_back(entry);
     }
 

@@ -140,5 +140,9 @@ namespace nxgallery::core
 
         // Singleton instance of the AlbumWrapper
         static AlbumWrapper* singleton;
+
+        // Holds counts for videos and photos
+        int screenshotCount = 0;
+        int videoCount = 0;
     };
 }

@@ -33,7 +33,7 @@ import { Pagination } from "@material-ui/lab";
 // Set the IP of your switch so it can connect in dev mode
 const DEV_IP = "http://192.168.178.46:1234";
 const getBackendURL = () => {
-    const DEV_MODE = process.env.NODE_ENV == "development";
+    const DEV_MODE = process.env.NODE_ENV === "development";
     return DEV_MODE ? DEV_IP : "";
 };
 
@@ -198,6 +198,11 @@ class App extends React.Component {
             currentPage: 1,
             maxPages: 1,
             currentTheme: "light",
+            stats: {
+                numScreenshots: 0,
+                numVideos: 0,
+                indexTime: 0
+            },
             error: false
         };
     }
@@ -215,6 +220,7 @@ class App extends React.Component {
                 galleryContent: result.gallery,
                 maxPages: result.pages,
                 currentTheme: result.theme,
+                stats: result.stats,
                 error: false
             })
         }, (error) => {
@@ -238,7 +244,7 @@ class App extends React.Component {
                 <CssBaseline/>
                 <Container style={{flexGrow: 1, padding: "8px"}}>
                     <Typography variant="h2" color="textPrimary" align="center">NXGallery<a href={"https://github.com/iUltimateLP/NXGallery"} target={"_blank"} rel={"noreferrer"}><i className={`fab fa-github ${this.state.currentTheme}`}></i></a></Typography>
-                    <Typography variant="h6" color="textSecondary" align="center" style={{paddingBottom: "16px", fontWeight: "100"}}>Browse your Nintendo Switch album with ease!</Typography>
+                    <Typography variant="h6" color="textSecondary" align="center" style={{paddingBottom: "16px", fontWeight: "100"}}>Indexed {this.state.stats.numScreenshots} photos and {this.state.stats.numVideos} videos in {this.state.stats.indexTime.toPrecision(3)} seconds.</Typography>
 
                     <Grid container spacing={2} justifyContent="center">
                         {this.state.galleryContent.map((value) => (

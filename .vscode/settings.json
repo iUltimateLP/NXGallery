@@ -52,6 +52,7 @@
         "format": "cpp",
         "netdb.h": "c",
         "ifaddrs.h": "c",
-        "socket.h": "c"
+        "socket.h": "c",
+        "chrono": "cpp"
     }
 }
