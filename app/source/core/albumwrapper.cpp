@@ -37,7 +37,7 @@ using namespace nxgallery::core;
 using json = nlohmann::json;
 
 // Needed for compiler
-AlbumWrapper* AlbumWrapper::singleton = NULL;
+CAlbumWrapper* CAlbumWrapper::singleton = NULL;
 
 // Overwritten == operator to compare CapsAlbumEntry's
 inline bool operator==(CapsAlbumEntry lhs, const CapsAlbumEntry rhs)
@@ -52,7 +52,7 @@ inline bool operator==(CapsAlbumEntry lhs, const CapsAlbumEntry rhs)
         && lhs.file_id.datetime.id == rhs.file_id.datetime.id;
 }
 
-VideoStreamReader::VideoStreamReader(const CapsAlbumEntry& inAlbumEntry)
+CVideoStreamReader::CVideoStreamReader(const CapsAlbumEntry& inAlbumEntry)
     : albumEntry(inAlbumEntry)
 {
     // Open video stream
@@ -69,7 +69,7 @@ VideoStreamReader::VideoStreamReader(const CapsAlbumEntry& inAlbumEntry)
     capsaGetAlbumMovieStreamSize(streamHandle, &streamSize);
 }
 
-VideoStreamReader::~VideoStreamReader()
+CVideoStreamReader::~CVideoStreamReader()
 {
     // Free the read buffer
     free(workBuffer);
@@ -78,7 +78,7 @@ VideoStreamReader::~VideoStreamReader()
     capsaCloseAlbumMovieStream(streamHandle);
 }
 
-u64 VideoStreamReader::GetStreamSize()
+u64 CVideoStreamReader::GetStreamSize()
 {
     // If the stream size is bigger than INT_MAX, it's probably invalid and we'll return 0
     if (streamSize > 0x80000000) return 0;
@@ -86,7 +86,7 @@ u64 VideoStreamReader::GetStreamSize()
     return streamSize;
 }
 
-u64 VideoStreamReader::Read(char* outBuffer, u64 numBytes)
+u64 CVideoStreamReader::Read(char* outBuffer, u64 numBytes)
 {
     // Calculate a few statistics
     u64 remaining = streamSize - bytesRead;
@@ -127,19 +127,19 @@ u64 VideoStreamReader::Read(char* outBuffer, u64 numBytes)
     }
 }
 
-AlbumWrapper* AlbumWrapper::Get()
+CAlbumWrapper* CAlbumWrapper::Get()
 {
     // If no singleton is existing, create a new instance
     if (!singleton)
     {
-        singleton = new AlbumWrapper();
+        singleton = new CAlbumWrapper();
     }
 
     // Return the instance
     return singleton;
 }
 
-void AlbumWrapper::Init()
+void CAlbumWrapper::Init()
 {
     // SD card storage will already be mounted thanks to romfsInitialize()
 
@@ -162,7 +162,7 @@ void AlbumWrapper::Init()
     CacheGalleryContent();
 }
 
-void AlbumWrapper::Shutdown()
+void CAlbumWrapper::Shutdown()
 {
     // Unmount the NAND storage
     int r = fsdevUnmountDevice("nand");
@@ -172,7 +172,7 @@ void AlbumWrapper::Shutdown()
     }
 }
 
-std::string AlbumWrapper::GetGalleryContent(int page)
+std::string CAlbumWrapper::GetGalleryContent(int page)
 {
     // Will hold the stringified JSON data
     std::string outJSON;
@@ -268,7 +268,7 @@ std::string AlbumWrapper::GetGalleryContent(int page)
         }
 
         // Add the filename for downloading
-        jsonObj["fileName"] = nxgallery::core::AlbumWrapper::Get()->GetAlbumEntryFilename(i);
+        jsonObj["fileName"] = nxgallery::core::CAlbumWrapper::Get()->GetAlbumEntryFilename(i);
         
         // Push this json object to the array
         jsonArray.push_back(jsonObj);
@@ -292,7 +292,7 @@ std::string AlbumWrapper::GetGalleryContent(int page)
     return outJSON;
 }
 
-std::string AlbumWrapper::GetTitleName(u64 titleId)
+std::string CAlbumWrapper::GetTitleName(u64 titleId)
 {
     // Retrieve the control.nacp data for the game where the current album entry was taken
     NsApplicationControlData nacpData;
@@ -346,12 +346,12 @@ std::string AlbumWrapper::GetTitleName(u64 titleId)
     }
 }
 
-CapsAlbumFileContents AlbumWrapper::GetAlbumEntryType(int id)
+CapsAlbumFileContents CAlbumWrapper::GetAlbumEntryType(int id)
 {
     return (CapsAlbumFileContents)cachedAlbumContent[id].file_id.content;
 }
 
-std::string AlbumWrapper::GetAlbumEntryFilename(int id)
+std::string CAlbumWrapper::GetAlbumEntryFilename(int id)
 {
     // Get the entry from cache
     CapsAlbumEntry albumEntry = cachedAlbumContent[id];
@@ -383,7 +383,7 @@ std::string AlbumWrapper::GetAlbumEntryFilename(int id)
     return finalName;
 }
 
-bool AlbumWrapper::GetFileThumbnail(int id, void* outBuffer, u64 bufferSize, u64* outActualImageSize)
+bool CAlbumWrapper::GetFileThumbnail(int id, void* outBuffer, u64 bufferSize, u64* outActualImageSize)
 {
     // Make sure that ID exists
     if (id < 0 || id > cachedAlbumContent.size())
@@ -405,7 +405,7 @@ bool AlbumWrapper::GetFileThumbnail(int id, void* outBuffer, u64 bufferSize, u64
     }
 }
 
-bool AlbumWrapper::GetFileContent(int id, void* outBuffer, u64 bufferSize, u64* outActualFileSize)
+bool CAlbumWrapper::GetFileContent(int id, void* outBuffer, u64 bufferSize, u64* outActualFileSize)
 {
     // Make sure that ID exists
     if (id < 0 || id > cachedAlbumContent.size())
@@ -432,7 +432,7 @@ bool AlbumWrapper::GetFileContent(int id, void* outBuffer, u64 bufferSize, u64* 
     else
     {
         // It's a video, use our movie stream reader
-        VideoStreamReader* videoStreamReader = new VideoStreamReader(entry);
+        CVideoStreamReader* videoStreamReader = new CVideoStreamReader(entry);
 
         // Get the stream size. Using that we also know how much bytes we need to read in total
         *outActualFileSize = videoStreamReader->GetStreamSize();
@@ -458,7 +458,7 @@ bool AlbumWrapper::GetFileContent(int id, void* outBuffer, u64 bufferSize, u64* 
     }
 }
 
-void AlbumWrapper::CacheGalleryContent()
+void CAlbumWrapper::CacheGalleryContent()
 {  
     // Cache NAND album
     CacheAlbum(CapsAlbumStorage_Nand, cachedAlbumContent);
@@ -470,7 +470,7 @@ void AlbumWrapper::CacheGalleryContent()
     std::reverse(cachedAlbumContent.begin(), cachedAlbumContent.end());
 }
 
-void AlbumWrapper::CacheAlbum(CapsAlbumStorage location, std::vector<CapsAlbumEntry>& outCache)
+void CAlbumWrapper::CacheAlbum(CapsAlbumStorage location, std::vector<CapsAlbumEntry>& outCache)
 {    
     // This uses capsa (Capture Service), which is the libnx service to data from the Switch album
 

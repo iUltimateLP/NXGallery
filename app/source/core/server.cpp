@@ -30,7 +30,7 @@
 
 using namespace nxgallery::core;
 
-WebServer::WebServer(int port)
+CWebServer::CWebServer(int port)
 {
     // Store the port
     this->port = port;
@@ -39,10 +39,10 @@ WebServer::WebServer(int port)
     isRunning = false;
 
     // We won't initialize the web server here just now, 
-    // the caller can do that by calling WebServer::Start
+    // the caller can do that by calling CWebServer::Start
 }
 
-void WebServer::Start()
+void CWebServer::Start()
 {
     // If we're already running, don't try to start again
     if (isRunning)
@@ -62,7 +62,7 @@ void WebServer::Start()
         return;
     }
 
-    // Set a relatively short timeout for recv() calls, see WebServer::ServeRequest for more info why
+    // Set a relatively short timeout for recv() calls, see CWebServer::ServeRequest for more info why
     struct timeval recvTimeout;
     recvTimeout.tv_sec = 1;
     recvTimeout.tv_usec = 0;
@@ -91,20 +91,20 @@ void WebServer::Start()
     isRunning = true;
 }
 
-void WebServer::GetAddress(char* buffer)
+void CWebServer::GetAddress(char* buffer)
 {
     static struct sockaddr_in serv_addr;
     serv_addr.sin_addr.s_addr = gethostid();
     sprintf(buffer, "http://%s:%d/", inet_ntoa(serv_addr.sin_addr), port);
 }
 
-void WebServer::AddMountPoint(const char* path)
+void CWebServer::AddMountPoint(const char* path)
 {
     // Add it to the mountPoints vector
     mountPoints.push_back(path);
 }
 
-void WebServer::ServeLoop()
+void CWebServer::ServeLoop()
 {
     // Asynchronous / event-driven loop using poll
     // More here: http://man7.org/linux/man-pages/man2/poll.2.html
@@ -166,7 +166,7 @@ void WebServer::ServeLoop()
     
 }
 
-void WebServer::ServeRequest(int in, int out, std::vector<const char*> mountPoints)
+void CWebServer::ServeRequest(int in, int out, std::vector<const char*> mountPoints)
 {
     // A lot of the code here is taken from the german page here: https://www.kompf.de/cplus/artikel/httpserv.html
     
@@ -203,7 +203,7 @@ void WebServer::ServeRequest(int in, int out, std::vector<const char*> mountPoin
     //       Therefore, the code may halt here to wait for incoming data. Some browsers, such as
     //       Google Chrome like to open a second socket (but not send anything) as a backup socket
     //       for optimization. Therefore, we would wait forever for data to arrive on that socket.
-    //       That's why I set a timeout for recv calls() before, see WebServer::Start()
+    //       That's why I set a timeout for recv calls() before, see CWebServer::Start()
     bool breakReceive = false;
     while ((bytesReceived = recv(in, b, sizeof(buffer) - bytesTotal, 0)) > 0) 
     {
@@ -304,7 +304,7 @@ void WebServer::ServeRequest(int in, int out, std::vector<const char*> mountPoin
             send(out, buffer, strlen(buffer), 0);
 
             // Ask the album wrapper to process the request
-            std::string jsonData = nxgallery::core::AlbumWrapper::Get()->GetGalleryContent(galleryPage);
+            std::string jsonData = nxgallery::core::CAlbumWrapper::Get()->GetGalleryContent(galleryPage);
 
             // Send out the data to the socket
             const char* dataPtr = jsonData.data();
@@ -335,7 +335,7 @@ void WebServer::ServeRequest(int in, int out, std::vector<const char*> mountPoin
 
             // The actual size is smaller than the workbuffer we allocated, so only send what we actually use
             u64 actualImageBufferSize = 0;
-            if (nxgallery::core::AlbumWrapper::Get()->GetFileThumbnail(fileId, imageBuffer, imageBufferSize, &actualImageBufferSize))
+            if (nxgallery::core::CAlbumWrapper::Get()->GetFileThumbnail(fileId, imageBuffer, imageBufferSize, &actualImageBufferSize))
             {
                 // Send raw JPEG data
                 int bytesSent = 0;
@@ -362,12 +362,12 @@ void WebServer::ServeRequest(int in, int out, std::vector<const char*> mountPoin
         else if (sscanf(url, "/file?id=%d", &fileId))
         {
             // Get the media first to check what type it is
-            CapsAlbumFileContents fileType = nxgallery::core::AlbumWrapper::Get()->GetAlbumEntryType(fileId);
+            CapsAlbumFileContents fileType = nxgallery::core::CAlbumWrapper::Get()->GetAlbumEntryType(fileId);
             bool isVideo = (fileType == CapsAlbumFileContents_Movie || fileType == CapsAlbumFileContents_ExtraMovie);
 
             // Send a 200 OK back with the correct content type
             std::string contentType = isVideo ? "video/mp4" : "image/jpeg";
-            std::string downloadFileName = nxgallery::core::AlbumWrapper::Get()->GetAlbumEntryFilename(fileId);
+            std::string downloadFileName = nxgallery::core::CAlbumWrapper::Get()->GetAlbumEntryFilename(fileId);
             sprintf(buffer, "HTTP/1.0 200 OK\nContent-Type: %s\nAccess-Control-Allow-Origin: *\nContent-Disposition: filename=\"%s\"\n\n", contentType.c_str(), downloadFileName.c_str());
             send(out, buffer, strlen(buffer), 0);
 
@@ -378,7 +378,7 @@ void WebServer::ServeRequest(int in, int out, std::vector<const char*> mountPoin
 
             // The actual size is smaller than the workbuffer we allocated, so only send what we actually use
             u64 actualFileBufferSize = 0; 
-            if (nxgallery::core::AlbumWrapper::Get()->GetFileContent(fileId, fileBuffer, fileBufferSize, &actualFileBufferSize))
+            if (nxgallery::core::CAlbumWrapper::Get()->GetFileContent(fileId, fileBuffer, fileBufferSize, &actualFileBufferSize))
             {
                 // Send raw file data
                 int bytesSent = 0;
@@ -420,7 +420,7 @@ void WebServer::ServeRequest(int in, int out, std::vector<const char*> mountPoin
     }
 }
 
-void WebServer::Stop()
+void CWebServer::Stop()
 {
     // Not running anymore
     isRunning = false;

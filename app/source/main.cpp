@@ -154,11 +154,11 @@ int main(int argc, char* argv[])
     }
 
     // Initialize the album wrapper
-    nxgallery::core::AlbumWrapper::Get()->Init();
+    nxgallery::core::CAlbumWrapper::Get()->Init();
 
     // Create the web server for hosting the web interface, add romfs:/www as a mount point for
     // static web assets and start it
-    nxgallery::core::WebServer* webServer = new nxgallery::core::WebServer(SERVER_PORT);
+    nxgallery::core::CWebServer* webServer = new nxgallery::core::CWebServer(SERVER_PORT);
     webServer->AddMountPoint("romfs:/www");
     webServer->Start();
 
@@ -181,7 +181,7 @@ int main(int argc, char* argv[])
     webServer->Stop();
 
     // Stop the album wrapper
-    nxgallery::core::AlbumWrapper::Get()->Shutdown();
+    nxgallery::core::CAlbumWrapper::Get()->Shutdown();
 
     // Deinitialize all modules NXGallery needed
     exitSwitchModules();

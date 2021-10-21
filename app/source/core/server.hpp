@@ -46,11 +46,11 @@ namespace nxgallery::core
     // Therefore it's a very important part for this app
     // Huge shoutout to https://www.kompf.de/cplus/artikel/httpserv.html
     // and the man7.org Linux manual
-    class WebServer
+    class CWebServer
     {
     public:
         // Constructor taking in the port for this server to run on
-        WebServer(int port);
+        CWebServer(int port);
         
         // Starts the web server
         void Start();

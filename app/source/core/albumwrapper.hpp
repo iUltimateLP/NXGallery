@@ -37,23 +37,15 @@
 
 namespace nxgallery::core
 {
-    // Type of homebrew installation
-    enum HomebrewInstallationType
-    {
-        Nand,
-        SD_EmuMMC,
-        SD_EmuMMC_Filebased
-    };
-
     // This class is responsible for reading videos as we access them
     // in a stream-like format through capsa. 
     // Full credit goes to HookedBehemoth and his ShareNX project :)
-    class VideoStreamReader
+    class CVideoStreamReader
     {
     public:
         // Constructor and destructor
-        VideoStreamReader(const CapsAlbumEntry& inAlbumEntry);
-        ~VideoStreamReader();
+        CVideoStreamReader(const CapsAlbumEntry& inAlbumEntry);
+        ~CVideoStreamReader();
 
         // Returns the size of the whole video stream (= size of the video file)
         u64 GetStreamSize();
@@ -88,12 +80,12 @@ namespace nxgallery::core
     // This class will help NXGallery with the Switch'es album.
     // It will implement logic from libnx and provide an interface
     // for the server/backend to provide for the frontend.
-    class AlbumWrapper
+    class CAlbumWrapper
     {
     public:
         // Returns the singleton instance of the album wrapper
         // We use a singleton so the web server can access it
-        static AlbumWrapper* Get();
+        static CAlbumWrapper* Get();
 
         // Initializes the album wrapper
         void Init();
@@ -138,14 +130,11 @@ namespace nxgallery::core
         // Holds the filesystem of the internal NAND storage
         FsFileSystem nandFileSystem;
 
-        // Stores the type of installation NXGallery runs on
-        HomebrewInstallationType installationType;
-
         // Holds all album content in cache
         std::vector<CapsAlbumEntry> cachedAlbumContent;
 
-        // Singleton instance of the AlbumWrapper
-        static AlbumWrapper* singleton;
+        // Singleton instance of the CAlbumWrapper
+        static CAlbumWrapper* singleton;
 
         // Holds counts for videos and photos
         int screenshotCount = 0;
