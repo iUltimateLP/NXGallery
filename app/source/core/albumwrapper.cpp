@@ -160,6 +160,12 @@ void CAlbumWrapper::Init()
     
     // Cache the gallery content
     CacheGalleryContent();
+
+    // Filter test
+    FilterInfo filter;
+    filter.Flags = FilterInfo::FilterFlags::None;
+    filter.GameFilter.titleId = 0x01006F8002326000;
+    nxgallery::core::CAlbumWrapper::Get()->ApplyFilter(filter);
 }
 
 void CAlbumWrapper::Shutdown()
@@ -170,6 +176,45 @@ void CAlbumWrapper::Shutdown()
     {
         printf("Error unmounting NAND storage!\n");
     }
+}
+
+void CAlbumWrapper::ApplyFilter(FilterInfo filter)
+{
+    // If no filter is set, skip the filter comparision below
+    if (filter.Flags == FilterInfo::FilterFlags::None)
+    {
+        filteredAlbumContent = cachedAlbumContent;
+        return;
+    }
+
+    // Print what filter is active
+    if ((filter.Flags & FilterInfo::FilterFlags::Type) != 0) printf("Filter by type\n");
+    if ((filter.Flags & FilterInfo::FilterFlags::Date) != 0) printf("Filter by date\n");
+    if ((filter.Flags & FilterInfo::FilterFlags::Location) != 0) printf("Filter by location\n");
+    if ((filter.Flags & FilterInfo::FilterFlags::Game) != 0) printf("Filter by game\n");
+
+    // Apply filters
+    filteredAlbumContent.clear();
+    for (CapsAlbumEntry entry : cachedAlbumContent)
+    {
+        bool passesFilter = true;
+
+        // Filtering by game
+        if ((filter.Flags & FilterInfo::FilterFlags::Game) != 0)
+        {
+            passesFilter &= (entry.file_id.application_id == filter.GameFilter.titleId);
+        }
+
+        printf("Entry of title %lu passes filter: %d\n", entry.file_id.application_id, passesFilter);
+
+        // Add to filtered list if it passed the filter
+        if (passesFilter)
+        {
+            filteredAlbumContent.push_back(entry);
+        }
+    }
+
+    printf("%ld entries, filtered: %ld\n", cachedAlbumContent.size(), filteredAlbumContent.size());
 }
 
 std::string CAlbumWrapper::GetGalleryContent(int page)
@@ -199,7 +244,7 @@ std::string CAlbumWrapper::GetGalleryContent(int page)
 
     // Fill in some data for the frontend
     // Calculate the max amount of pages we will have
-    finalObject["pages"] = (int)ceil((double)cachedAlbumContent.size() / (double)CONTENT_PER_PAGE);
+    finalObject["pages"] = (int)ceil((double)filteredAlbumContent.size() / (double)CONTENT_PER_PAGE);
 
     // Get the console's color theme so the frontend can fit
     ColorSetId colorTheme;
@@ -217,14 +262,14 @@ std::string CAlbumWrapper::GetGalleryContent(int page)
     int pageMax = page * CONTENT_PER_PAGE;
 
     // Make sure to stay in bounds
-    if (pageMax >= cachedAlbumContent.size())
-        pageMax = cachedAlbumContent.size();
+    if (pageMax >= filteredAlbumContent.size())
+        pageMax = filteredAlbumContent.size();
 
     // Iterate over the current range for the page
     for (int i = pageMin; i < pageMax; i++)
     {
         // Get the entry off the album content cache
-        CapsAlbumEntry albumEntry = cachedAlbumContent[i];
+        CapsAlbumEntry albumEntry = filteredAlbumContent[i];
 
         // Figure out if this album entry is stored on the NAND of SD by looking at the
         // vector this element is in
@@ -348,13 +393,13 @@ std::string CAlbumWrapper::GetTitleName(u64 titleId)
 
 CapsAlbumFileContents CAlbumWrapper::GetAlbumEntryType(int id)
 {
-    return (CapsAlbumFileContents)cachedAlbumContent[id].file_id.content;
+    return (CapsAlbumFileContents)filteredAlbumContent[id].file_id.content;
 }
 
 std::string CAlbumWrapper::GetAlbumEntryFilename(int id)
 {
     // Get the entry from cache
-    CapsAlbumEntry albumEntry = cachedAlbumContent[id];
+    CapsAlbumEntry albumEntry = filteredAlbumContent[id];
 
     // Get the file and check if it's a video
     CapsAlbumFileContents fileType = GetAlbumEntryType(id);
@@ -386,11 +431,11 @@ std::string CAlbumWrapper::GetAlbumEntryFilename(int id)
 bool CAlbumWrapper::GetFileThumbnail(int id, void* outBuffer, u64 bufferSize, u64* outActualImageSize)
 {
     // Make sure that ID exists
-    if (id < 0 || id > cachedAlbumContent.size())
+    if (id < 0 || id > filteredAlbumContent.size())
         return false;
 
     // Get the content with that ID
-    CapsAlbumEntry entry = cachedAlbumContent[id];
+    CapsAlbumEntry entry = filteredAlbumContent[id];
 
     // Load the thumbnail
     Result result = capsaLoadAlbumFileThumbnail(&entry.file_id, outActualImageSize, outBuffer, bufferSize);
@@ -408,11 +453,11 @@ bool CAlbumWrapper::GetFileThumbnail(int id, void* outBuffer, u64 bufferSize, u6
 bool CAlbumWrapper::GetFileContent(int id, void* outBuffer, u64 bufferSize, u64* outActualFileSize)
 {
     // Make sure that ID exists
-    if (id < 0 || id > cachedAlbumContent.size())
+    if (id < 0 || id > filteredAlbumContent.size())
         return false;
 
     // Get the content with that ID
-    CapsAlbumEntry entry = cachedAlbumContent[id];
+    CapsAlbumEntry entry = filteredAlbumContent[id];
 
     // If it's a screenshot, we can use capsaLoadAlbumFile to retrieve it
     if (entry.file_id.content == CapsAlbumFileContents_ScreenShot || entry.file_id.content == CapsAlbumFileContents_ExtraScreenShot)

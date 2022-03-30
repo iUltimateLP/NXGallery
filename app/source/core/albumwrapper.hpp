@@ -77,6 +77,52 @@ namespace nxgallery::core
         u32 lastBufferIndex = -1;
     };
 
+    // Filter info
+    struct FilterInfo
+    {
+    public:
+        // Filter type bitflags
+        enum FilterFlags
+        {
+            None        = 0x0000,
+            Game        = 0x0001,
+            Date        = 0x0010,
+            Type        = 0x0100,
+            Location    = 0x1000
+        } Flags = FilterFlags::None;
+
+        // Filter by "Game"
+        struct GameFilterInfo
+        {
+            u64 titleId = 0;
+        } GameFilter;
+
+        // Filter by "Date"
+        struct DateFilterInfo
+        {
+            time_t rangeMin = 0;
+            time_t rangeMax = 0;
+        } DateFilter;
+
+        // Filter by "Type"
+        struct TypeFilterInfo
+        {
+            std::string type;
+        } TypeFilter;
+
+        // Filter by "Storage Location"
+        struct StorageLocationFilterInfo
+        {
+            std::string location;
+        } StorageLocationFilter;
+    };
+
+    // Bitflag | operator for filter info
+    inline FilterInfo::FilterFlags operator|(FilterInfo::FilterFlags lhs, FilterInfo::FilterFlags rhs)
+    {
+        return static_cast<FilterInfo::FilterFlags>(static_cast<int>(lhs) | static_cast<int>(rhs));
+    }
+
     // This class will help NXGallery with the Switch'es album.
     // It will implement logic from libnx and provide an interface
     // for the server/backend to provide for the frontend.
@@ -95,6 +141,9 @@ namespace nxgallery::core
 
         // Returns all paths where the Switch stores album content
         std::vector<const char*> GetAlbumContentPaths();
+
+        // Applies the given filter and caches the filter result
+        void ApplyFilter(FilterInfo filter);
 
         // Basically, the logic behind the /gallery endpoint as a backend API
         // Contains a JSON-stringified array of gallery content
@@ -132,6 +181,9 @@ namespace nxgallery::core
 
         // Holds all album content in cache
         std::vector<CapsAlbumEntry> cachedAlbumContent;
+
+        // Holds the current filtered album content
+        std::vector<CapsAlbumEntry> filteredAlbumContent;
 
         // Singleton instance of the CAlbumWrapper
         static CAlbumWrapper* singleton;
