@@ -1,0 +1,17 @@
+{
+  "short_name": "NXGallery",
+  "id": "org.nx.gallery",
+  "name": "NXGallery",
+  "description": "Transfer your screenshots to your phone in no-time",
+  "icons": [
+    {
+      "src": "/assets/favicon.png",
+      "sizes": "256x256"
+    }
+  ],
+  "start_url": "/",
+  "background_color": "#2d2d2d",
+  "display": "standalone",
+  "scope": "/",
+  "theme_color": "#000000"
+}
