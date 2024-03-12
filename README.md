@@ -28,9 +28,9 @@
 </table>
 
 # Installing
-Download the [latest release](https://github.com/iUltimateLP/NXGallery/releases) and drag the `NXGallery.nro` file to the `switch/` folder of your SD card. You can also drag the file to your Switch via [ftpd](https://github.com/mtheall/ftpd). NXGallery is alwo available in the [Homebrew App Store](https://apps.fortheusers.org/switch/NXGallery).
+Download the [latest release](https://github.com/iUltimateLP/NXGallery/releases) and drag the `NXGallery.nro` file to the `switch/` folder of your SD card. You can also drag the file to your Switch via [ftpd](https://github.com/mtheall/ftpd). NXGallery is also available in the [Homebrew App Store](https://apps.fortheusers.org/switch/NXGallery).
 
-NXGallery was tested working on [Atmosphère](https://github.com/Atmosphere-NX/Atmosphere) 1.1.1 and firmware version 13.0.0, but should work above/below, if you know what you're doing.
+NXGallery was tested working on [Atmosphère](https://github.com/Atmosphere-NX/Atmosphere) 1.6.2 and firmware version 17.0.1, but should work above/below, if you know what you're doing.
 
 # Building
 Compiling this project requires a [Nintendo Switch Homebrew dev environment](https://switchbrew.org/wiki/Setting_up_Development_Environment) to be installed. Then, install the following dependencies (required for [borealis](https://github.com/natinusala/borealis)):
@@ -54,7 +54,7 @@ Also, special thanks to [HookedBehemoth's ShareNX](https://github.com/HookedBehe
 ```
 MIT License
 
-Copyright (c) 2020-2021 Jonathan Verbeek
+Copyright (c) 2020-2024 Jonathan Verbeek
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
