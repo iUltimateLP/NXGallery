@@ -31,7 +31,7 @@ import {
 import { Pagination } from "@material-ui/lab";
 
 // Set the IP of your switch so it can connect in dev mode
-const DEV_IP = "http://192.168.178.46:1234";
+const DEV_IP = "http://192.168.100.25:1234";
 const getBackendURL = () => {
     const DEV_MODE = process.env.NODE_ENV === "development";
     return DEV_MODE ? DEV_IP : "";
@@ -233,8 +233,7 @@ class App extends React.Component {
             <ThemeProvider theme={this.state.currentTheme === "light" ? lightTheme : darkTheme}>
                 <CssBaseline/>
                 <Container style={{flexGrow: 1, padding: "8px"}}>
-                    <Typography variant="h2" color="textPrimary" align="center">NXGallery<a href={"https://github.com/iUltimateLP/NXGallery"} target={"_blank"} rel={"noreferrer"}><i className={`fab fa-github ${this.state.currentTheme}`}></i></a></Typography>
-                    <Typography variant="h6" color="textSecondary" align="center" style={{paddingBottom: "16px", fontWeight: "100"}}>Indexed {this.state.stats.numScreenshots} photos and {this.state.stats.numVideos} videos in {this.state.stats.indexTime.toPrecision(3)} seconds.</Typography>
+                    <Typography variant="overline" color="textPrimary" align="left" style={{padding: "8px"}}><i className={"fas fa-images"}></i> Gallery</Typography>
 
                     <Grid container spacing={2} justifyContent="center">
                         {this.state.galleryContent.map((value) => (
@@ -243,7 +242,7 @@ class App extends React.Component {
                     </Grid>
 
                     {this.state.error && 
-                        <Typography variant="h6" color="error" align="center">Oh no, an error has occured :(</Typography>
+                        <Typography variant="h6" color="error" align="center">Oh no, an error has occurred :(</Typography>
                     }
 
                     {(this.state.galleryContent.length === 0 && !this.state.error) &&
@@ -259,9 +258,12 @@ class App extends React.Component {
                     }
 
                     <Container align="center" className={"footer"}>
+                        <Typography variant="overline" color="textSecondary" align="center" style={{paddingBottom: "16px", fontWeight: "100"}}>Indexed {this.state.stats.numScreenshots} photos and {this.state.stats.numVideos} videos in {this.state.stats.indexTime.toPrecision(3)} seconds.</Typography><br/>
+
                         <Typography variant="overline" color="textSecondary" align="center">Made with</Typography>
                         <Icon className={"heart"}>favorite</Icon>
                         <Typography variant="overline" color="textSecondary" align="center">in Bremen, Germany</Typography><br/>
+                        <Typography variant="overline" color="textSecondary" align="center"><a href={"https://github.com/iUltimateLP/NXGallery"} target={"_blank"} rel={"noreferrer"}><i className={`fab fa-github ${this.state.currentTheme}`}></i></a></Typography>
                     </Container>
                 </Container>
             </ThemeProvider>
